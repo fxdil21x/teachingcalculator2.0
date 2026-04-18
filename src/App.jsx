@@ -574,11 +574,6 @@ export default function App() {
   }
 
   async function handleLogin(email, password) {
-    if (email?.toLowerCase() === ADMIN_EMAIL.toLowerCase() && !isAdminPath) {
-      window.alert("Admin login is only available via /admin/dashboard.");
-      return;
-    }
-
     try {
       await login(email, password, ADMIN_EMAIL);
       await Swal.fire({
