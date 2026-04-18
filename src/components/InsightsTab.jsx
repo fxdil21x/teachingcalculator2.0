@@ -137,7 +137,7 @@ export default function InsightsTab({ entries }) {
 
   return (
     <div className="tab-content active">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
         <h2 className="text-2xl font-bold text-slate-200">Teaching Insights</h2>
         <div className="text-sm text-slate-400">
           Based on {insights.totalDays} teaching days

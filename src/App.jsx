@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Eye, EyeOff, Menu, X, User, Lock, Key, HelpCircle, LogOut } from "lucide-react";
 import Swal from "sweetalert2";
 import AdminTab from "./components/AdminTab";
 import AdminDashboardTab, { buildAdminMonthlyRows } from "./components/AdminDashboardTab";
@@ -62,6 +63,7 @@ export default function App() {
   const [adminMonth, setAdminMonth] = useState(now.getMonth());
   const [adminYear, setAdminYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
+  const [menuOpen, setMenuOpen] = useState(false);
   const [year, setYear] = useState(now.getFullYear());
   const [salaryMonth, setSalaryMonth] = useState(now.getMonth());
   const [salaryYear, setSalaryYear] = useState(now.getFullYear());
@@ -73,8 +75,15 @@ export default function App() {
   const isAdminPath = pathname.toLowerCase().startsWith("/admin/dashboard");
 
   useEffect(() => {
-    if (!("serviceWorker" in navigator)) return;
-    navigator.serviceWorker.register("/service-worker.js").catch(() => {});
+    if (!("serviceWorker" in navigator)) {
+      console.log("Service Workers not supported");
+      return;
+    }
+    navigator.serviceWorker.register("/service-worker.js").then((registration) => {
+      console.log("Service Worker registered successfully:", registration);
+    }).catch((error) => {
+      console.error("Service Worker registration failed:", error);
+    });
   }, []);
 
   useEffect(() => {
@@ -163,6 +172,26 @@ export default function App() {
   function handleTabChange(nextTab) {
     setActiveTab(nextTab);
     window.location.hash = nextTab;
+  }
+
+  function closeMenu() {
+    setMenuOpen(false);
+  }
+
+  async function handleMenuLogout() {
+    closeMenu();
+    await logout();
+  }
+
+  async function handleMenuChangePassword() {
+    closeMenu();
+    if (!user?.email) return;
+    await handleForgotPassword(user.email);
+  }
+
+  function handleMenuSupport() {
+    closeMenu();
+    window.alert("For support, please contact support@teachinghours.com or visit the support section.");
   }
 
   const filteredMonthly = useMemo(() => {
@@ -732,12 +761,13 @@ export default function App() {
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h1 className="mb-0">Teaching Hours Calculator</h1>
           <div className="flex items-center gap-2 text-sm text-slate-300">
-            <span>{user.email}</span>
-            <button type="button" className="btn-secondary w-auto px-3 py-1.5 text-xs" onClick={install}>
-              Install App
-            </button>
-            <button type="button" className="btn-secondary w-auto px-3 py-1.5 text-xs" onClick={logout}>
-              Logout
+            <button
+              type="button"
+              className="btn-secondary w-auto px-3 py-1.5 text-xs flex items-center gap-2"
+              onClick={() => setMenuOpen(true)}
+            >
+              <Menu size={16} />
+              Menu
             </button>
           </div>
         </div>
@@ -812,6 +842,99 @@ export default function App() {
           <AdminTab users={adminUsers} onApprove={handleApprove} onReject={handleReject} />
         )}
       </div>
+
+      {menuOpen && (
+        <div className="fixed inset-0 z-50 flex">
+          <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm" onClick={closeMenu}></div>
+          <div className="relative ml-auto h-full w-full max-w-sm bg-slate-900 p-6 shadow-2xl">
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-400">Menu</p>
+                <h3 className="text-xl font-semibold text-slate-100">Account</h3>
+              </div>
+              <button type="button" className="text-slate-300 hover:text-slate-100" onClick={closeMenu}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="rounded-3xl border border-slate-700/70 bg-slate-950/70 p-5 mb-6">
+              <div className="mb-3 flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-300">
+                  <User size={20} />
+                </div>
+                <div>
+                  <p className="text-sm text-slate-400">Signed in as</p>
+                  <p className="break-words text-slate-100">{user?.email}</p>
+                </div>
+              </div>
+              <p className="text-xs text-slate-500">{isAdmin ? "Administrator" : isApproved ? "Approved user" : "Pending approval"}</p>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                type="button"
+                className="flex w-full items-center justify-between rounded-2xl border border-slate-700/70 bg-slate-950/70 px-4 py-3 text-left text-slate-100 hover:border-blue-400"
+                onClick={() => {
+                  closeMenu();
+                  install();
+                }}
+              >
+                <span className="flex items-center gap-2">
+                  <HelpCircle size={18} />
+                  Install App
+                </span>
+                <span className="text-slate-400">Add to home</span>
+              </button>
+              <button
+                type="button"
+                className="flex w-full items-center justify-between rounded-2xl border border-slate-700/70 bg-slate-950/70 px-4 py-3 text-left text-slate-100 hover:border-blue-400"
+                onClick={handleMenuChangePassword}
+              >
+                <span className="flex items-center gap-2">
+                  <Lock size={18} />
+                  Change password
+                </span>
+                <Key size={18} />
+              </button>
+              <button
+                type="button"
+                className="flex w-full items-center justify-between rounded-2xl border border-slate-700/70 bg-slate-950/70 px-4 py-3 text-left text-slate-100 hover:border-blue-400"
+                onClick={() => {
+                  closeMenu();
+                  handleForgotPassword(user?.email || "");
+                }}
+              >
+                <span className="flex items-center gap-2">
+                  <HelpCircle size={18} />
+                  Forgot password
+                </span>
+                <span className="text-slate-400">Send email</span>
+              </button>
+              <button
+                type="button"
+                className="flex w-full items-center justify-between rounded-2xl border border-slate-700/70 bg-slate-950/70 px-4 py-3 text-left text-slate-100 hover:border-blue-400"
+                onClick={handleMenuSupport}
+              >
+                <span className="flex items-center gap-2">
+                  <HelpCircle size={18} />
+                  Support team
+                </span>
+                <span className="text-slate-400">Contact</span>
+              </button>
+              <button
+                type="button"
+                className="flex w-full items-center justify-between rounded-2xl border border-slate-700/70 bg-slate-950/70 px-4 py-3 text-left text-slate-100 hover:border-blue-400"
+                onClick={handleMenuLogout}
+              >
+                <span className="flex items-center gap-2">
+                  <LogOut size={18} />
+                  Logout
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="footer">
         <p>

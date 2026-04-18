@@ -26,7 +26,7 @@ function ProfessionalBreakdown({ title, rows, total, period }) {
 
       <div className="space-y-3 mb-4">
         {rows.map((row, index) => (
-          <div key={row.name} className="flex items-center justify-between py-2 border-b border-slate-700/30 last:border-b-0">
+          <div key={row.name} className="flex flex-col gap-2 rounded-lg bg-slate-900/30 p-3 border border-slate-700/30 last:border-b-0 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
               <span className="w-6 h-6 bg-blue-500/20 text-blue-300 rounded-full flex items-center justify-center text-xs font-medium">
                 {index + 1}
@@ -64,7 +64,7 @@ export default function ReportsTab({
 }) {
   return (
     <div className="tab-content active">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
         <h2 className="text-2xl font-bold text-slate-200">Salary Reports</h2>
         <button
           type="button"
