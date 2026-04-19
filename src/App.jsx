@@ -74,6 +74,7 @@ export default function App() {
   const [newInstitute, setNewInstitute] = useState({ name: "", rate: "", tds: false });
   const [result, setResult] = useState({ hours: "0", salary: "0", date: "" });
   const [todayPayload, setTodayPayload] = useState(null);
+  const [signupEmail, setSignupEmail] = useState(null);
 
   useEffect(() => {
     if (!("serviceWorker" in navigator)) {
@@ -579,21 +580,34 @@ export default function App() {
 
   async function handleApprove(uid) {
     await approveUser(uid);
-    window.alert("User approved!");
     await reloadUsers();
+    await Swal.fire({
+      title: "User Approved",
+      text: "The user has been approved successfully.",
+      icon: "success",
+      timer: 1500,
+      showConfirmButton: false,
+    });
   }
 
   async function handleReject(uid) {
     await rejectUser(uid);
-    window.alert("User rejected.");
+    await Swal.fire({
+      title: "Rejected",
+      text: "User has been rejected.",
+      icon: "info",
+      timer: 1500,
+      showConfirmButton: false,
+    });
     await reloadUsers();
   }
 
   async function handleSignup(email, password) {
+    setSignupEmail(email);
     try {
       await signup(email, password);
-      window.alert("Signup successful. Pending admin approval.");
     } catch (e) {
+      setSignupEmail(null);
       window.alert(e.message);
     }
   }
@@ -644,6 +658,34 @@ export default function App() {
   }
 
   if (loading) return <div className="loading">Loading...</div>;
+
+  if (signupEmail) {
+    return (
+      <div className="app-shell justify-center">
+        <div className="w-full max-w-lg rounded-2xl border border-amber-500/40 bg-slate-900/80 p-6 text-center shadow-2xl backdrop-blur">
+          <h2 className="mb-2 text-2xl font-semibold text-amber-200">Account Pending Approval</h2>
+          <p className="mb-5 text-slate-300">{signupEmail}</p>
+          <p className="mb-6 text-slate-400">Your account is created and waiting for admin approval. You can close and login again later.</p>
+          <div className="flex flex-wrap justify-center gap-2">
+            <button
+              type="button"
+              className="btn-secondary w-auto px-4"
+              onClick={async () => {
+                await logout();
+                setSignupEmail(null);
+              }}
+            >
+              Close
+            </button>
+            <button type="button" className="btn-secondary w-auto px-4" onClick={install}>
+              Install App
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!user) {
     return (
       <div className="app-shell justify-center">
@@ -683,7 +725,7 @@ export default function App() {
         <div className="w-full max-w-lg rounded-2xl border border-amber-500/40 bg-slate-900/80 p-6 text-center shadow-2xl backdrop-blur">
           <h2 className="mb-2 text-2xl font-semibold text-amber-200">Account Pending Approval</h2>
           <p className="mb-5 text-slate-300">{user.email}</p>
-          <p className="mb-6 text-slate-400">Your account is created and waiting for admin approval. You can logout and login again later.</p>
+          <p className="mb-6 text-slate-400">Your account is created and waiting for admin approval. You can close and login again later.</p>
           <div className="flex flex-wrap justify-center gap-2">
             <button type="button" className="btn-secondary w-auto px-4" onClick={logout}>
               Logout
@@ -837,7 +879,7 @@ export default function App() {
       {menuOpen && (
         <div className="fixed inset-0 z-50 flex">
           <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm" onClick={closeMenu}></div>
-          <div className="relative ml-auto h-full w-full max-w-sm bg-slate-900 p-6 shadow-2xl">
+          <div className="relative ml-auto h-full max-h-full w-full max-w-sm overflow-y-auto bg-slate-900 p-6 shadow-2xl">
             <div className="mb-6 flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-400">Menu</p>
