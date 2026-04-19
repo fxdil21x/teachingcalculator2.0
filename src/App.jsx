@@ -394,26 +394,28 @@ export default function App() {
   }
 
   async function downloadCsv() {
-    const { value: reportType } = await Swal.fire({
+    const result = await Swal.fire({
       title: 'Download Report',
       text: 'Choose the type of report to download',
       icon: 'question',
+      showDenyButton: true,
       showCancelButton: true,
       confirmButtonText: 'Monthly Report',
-      cancelButtonText: 'All-Time Report',
+      denyButtonText: 'All-Time Report',
+      cancelButtonText: 'Cancel',
       confirmButtonColor: '#3b82f6',
-      cancelButtonColor: '#10b981',
-      reverseButtons: true
+      denyButtonColor: '#10b981',
+      cancelButtonColor: '#6b7280',
+      reverseButtons: true,
     });
 
-    if (!reportType) {
-      // User chose All-Time Report (cancel button)
-      await downloadDetailedReport(entries, 'all-time');
-    } else {
-      // User chose Monthly Report (confirm button)
+    if (result.isConfirmed) {
       const csvEntries = entries.filter((e) => e.month === MONTHS[salaryMonth]);
       await downloadDetailedReport(csvEntries, `monthly-${MONTHS[salaryMonth].toLowerCase()}`);
+    } else if (result.isDenied) {
+      await downloadDetailedReport(entries, 'all-time');
     }
+    // If dismissed or cancelled, do nothing
   }
 
   async function downloadDetailedReport(reportEntries, filename) {
