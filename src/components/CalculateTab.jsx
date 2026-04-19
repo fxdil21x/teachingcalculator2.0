@@ -110,11 +110,11 @@ export default function CalculateTab({
               {inst.name} | TDS: {inst.tds ? "Yes" : "No"}
             </span>
             <span>
-              <button type="button" className="icon-btn" onClick={() => onEditInstitute(inst.id)}>
-                ✏️
+              <button type="button" className="text-btn edit-btn" onClick={() => onEditInstitute(inst.id)}>
+                Edit
               </button>
-              <button type="button" className="icon-btn" onClick={() => onDeleteInstitute(inst.id)}>
-                ❌
+              <button type="button" className="text-btn delete-btn" onClick={() => onDeleteInstitute(inst.id)}>
+                Delete
               </button>
             </span>
           </div>

@@ -46,11 +46,11 @@ export default function MonthlyTab({ month, year, setMonth, setYear, totalHours,
                 {formattedDate}: {(entry.minutes / 60).toFixed(2)}h ({entry.instituteName})
               </span>
               <span>
-                <button type="button" className="icon-btn" onClick={() => onEdit(entry)}>
-                  ✏️
+                <button type="button" className="text-btn edit-btn" onClick={() => onEdit(entry)}>
+                  Edit
                 </button>
-                <button type="button" className="danger-text-btn" onClick={() => onDelete(entry.id)}>
-                  ❌
+                <button type="button" className="text-btn delete-btn" onClick={() => onDelete(entry.id)}>
+                  Delete
                 </button>
               </span>
             </div>

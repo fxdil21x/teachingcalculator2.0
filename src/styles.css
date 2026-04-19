@@ -117,6 +117,18 @@
     @apply mt-5 w-full border border-slate-600 bg-slate-900/40 text-slate-100 transition hover:bg-slate-800/60;
   }
 
+  .text-btn {
+    @apply w-auto bg-transparent px-2 py-1 text-sm font-medium transition hover:bg-slate-700/50 rounded;
+  }
+
+  .edit-btn {
+    @apply text-blue-400 hover:text-blue-300;
+  }
+
+  .delete-btn {
+    @apply text-red-400 hover:text-red-300;
+  }
+
   .admin-actions {
     @apply flex flex-wrap gap-2 justify-end;
   }

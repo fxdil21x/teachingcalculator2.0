@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { Eye, EyeOff, Menu, X, User, Lock, Key, HelpCircle, LogOut } from "lucide-react";
+import { Eye, EyeOff, Menu, X, User, Lock, Key, HelpCircle, LogOut, Shield } from "lucide-react";
 import Swal from "sweetalert2";
 import AdminTab from "./components/AdminTab";
 import AdminDashboardTab, { buildAdminMonthlyRows } from "./components/AdminDashboardTab";
 import AuthSection from "./components/AuthSection";
 import CalculateTab from "./components/CalculateTab";
+import ChangePassword from "./components/ChangePassword";
 import InsightsTab from "./components/InsightsTab";
 import MonthlyTab from "./components/MonthlyTab";
 import ReportsTab from "./components/ReportsTab";
@@ -64,6 +65,8 @@ export default function App() {
   const [adminYear, setAdminYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
   const [menuOpen, setMenuOpen] = useState(false);
+  const [changePasswordModal, setChangePasswordModal] = useState(false);
+  const [adminMode, setAdminMode] = useState(false);
   const [year, setYear] = useState(now.getFullYear());
   const [salaryMonth, setSalaryMonth] = useState(now.getMonth());
   const [salaryYear, setSalaryYear] = useState(now.getFullYear());
@@ -71,8 +74,6 @@ export default function App() {
   const [newInstitute, setNewInstitute] = useState({ name: "", rate: "", tds: false });
   const [result, setResult] = useState({ hours: "0", salary: "0", date: "" });
   const [todayPayload, setTodayPayload] = useState(null);
-  const [pathname, setPathname] = useState(window.location.pathname);
-  const isAdminPath = pathname.toLowerCase().startsWith("/admin/dashboard");
 
   useEffect(() => {
     if (!("serviceWorker" in navigator)) {
@@ -84,16 +85,6 @@ export default function App() {
     }).catch((error) => {
       console.error("Service Worker registration failed:", error);
     });
-  }, []);
-
-  useEffect(() => {
-    const onLocationChange = () => setPathname(window.location.pathname);
-    window.addEventListener("popstate", onLocationChange);
-    window.addEventListener("hashchange", onLocationChange);
-    return () => {
-      window.removeEventListener("popstate", onLocationChange);
-      window.removeEventListener("hashchange", onLocationChange);
-    };
   }, []);
 
   async function reloadData() {
@@ -124,13 +115,13 @@ export default function App() {
   }
 
   useEffect(() => {
-    if (!user || !isApproved || isAdminPath) {
+    if (!user || !isApproved) {
       setInstitutes([]);
       setEntries([]);
       return;
     }
     reloadData().catch((e) => window.alert(e.message));
-  }, [user, isApproved, isAdminPath]);
+  }, [user, isApproved]);
 
   useEffect(() => {
     if (isAdmin && activeTab === "admin") {
@@ -151,7 +142,7 @@ export default function App() {
   useEffect(() => {
     const syncTabFromHash = () => {
       const hashTab = window.location.hash.replace("#", "");
-      const allowedTabs = isAdminPath ? ADMIN_ONLY_TABS : ALL_TABS;
+      const allowedTabs = ALL_TABS;
       if (!allowedTabs.includes(hashTab)) return;
       if ((hashTab === "admin" || hashTab === "adminDashboard") && !isAdmin) return;
       setActiveTab(hashTab);
@@ -159,15 +150,7 @@ export default function App() {
     syncTabFromHash();
     window.addEventListener("hashchange", syncTabFromHash);
     return () => window.removeEventListener("hashchange", syncTabFromHash);
-  }, [isAdmin, isAdminPath]);
-
-  useEffect(() => {
-    if (!isAdminPath || !isAdmin) return;
-    setActiveTab("adminDashboard");
-    if (window.location.hash !== "#adminDashboard") {
-      window.location.hash = "adminDashboard";
-    }
-  }, [isAdminPath, isAdmin]);
+  }, [isAdmin]);
 
   function handleTabChange(nextTab) {
     setActiveTab(nextTab);
@@ -185,13 +168,24 @@ export default function App() {
 
   async function handleMenuChangePassword() {
     closeMenu();
-    if (!user?.email) return;
-    await handleForgotPassword(user.email);
+    setChangePasswordModal(true);
   }
 
   function handleMenuSupport() {
     closeMenu();
     window.alert("For support, please contact support@teachinghours.com or visit the support section.");
+  }
+
+  function handleAdminRedirect() {
+    closeMenu();
+    setAdminMode(true);
+    setActiveTab("adminDashboard");
+  }
+
+  function handleExitAdminMode() {
+    setAdminMode(false);
+    setActiveTab("today");
+    window.location.hash = "today";
   }
 
   const filteredMonthly = useMemo(() => {
@@ -649,33 +643,6 @@ export default function App() {
 
   if (loading) return <div className="loading">Loading...</div>;
   if (!user) {
-    if (isAdminPath) {
-      return (
-        <div className="app-shell justify-center">
-          <div className="container max-w-5xl">
-            <div className="grid items-center gap-8 md:grid-cols-2">
-              <div className="space-y-4">
-                <p className="inline-block rounded-full border border-blue-400/40 bg-blue-500/15 px-3 py-1 text-xs uppercase tracking-wider text-blue-200">
-                  Admin Area
-                </p>
-                <h1 className="text-left">Admin Dashboard Login</h1>
-                <p className="text-slate-300">Login with admin credentials to access the dashboard.</p>
-                <p className="text-sm text-slate-400">Admin email: {ADMIN_EMAIL}</p>
-              </div>
-              <AuthSection
-                onLogin={handleLogin}
-                onSignup={handleSignup}
-                onAdminLogin={handleAdminLogin}
-                onForgotPassword={handleForgotPassword}
-                onInstall={install}
-                adminOnly
-                adminEmail={ADMIN_EMAIL}
-              />
-            </div>
-          </div>
-        </div>
-      );
-    }
     return (
       <div className="app-shell justify-center">
         <div className="container max-w-5xl">
@@ -703,33 +670,6 @@ export default function App() {
           <p>
             Created by <span>Fadil Rafeek CMA</span>
           </p>
-        </div>
-      </div>
-    );
-  }
-
-  if (isAdminPath && !isAdmin) {
-    return (
-      <div className="app-shell justify-center">
-        <div className="w-full max-w-lg rounded-2xl border border-rose-500/40 bg-slate-900/80 p-6 text-center shadow-2xl backdrop-blur">
-          <h2 className="mb-2 text-2xl font-semibold text-rose-200">Admin Access Required</h2>
-          <p className="mb-5 text-slate-300">You are logged in as {user.email}</p>
-          <p className="mb-6 text-slate-400">This page is only for admin. Logout and login from admin account.</p>
-          <div className="flex flex-wrap justify-center gap-2">
-            <button type="button" className="btn-secondary w-auto px-4" onClick={logout}>
-              Logout
-            </button>
-            <button
-              type="button"
-              className="btn-secondary w-auto px-4"
-              onClick={() => {
-                window.history.pushState({}, "", "/");
-                setPathname("/");
-              }}
-            >
-              Go to Home
-            </button>
-          </div>
         </div>
       </div>
     );
@@ -771,7 +711,7 @@ export default function App() {
             </button>
           </div>
         </div>
-        <Tabs activeTab={activeTab} onTabChange={handleTabChange} isAdmin={isAdmin} adminOnly={isAdminPath} />
+        <Tabs activeTab={activeTab} onTabChange={handleTabChange} isAdmin={isAdmin} />
 
         {activeTab === "today" && isApproved && (
           <CalculateTab
@@ -820,28 +760,77 @@ export default function App() {
         {activeTab === "insights" && isApproved && (
           <InsightsTab entries={entries} />
         )}
-
-        {activeTab === "adminDashboard" && isAdmin && (
-          <AdminDashboardTab
-            users={adminUsers}
-            selectedUserId={adminSelectedUserId}
-            onSelectUser={setAdminSelectedUserId}
-            selectedUser={selectedAdminUser}
-            month={adminMonth}
-            year={adminYear}
-            setMonth={setAdminMonth}
-            setYear={setAdminYear}
-            monthlyRows={adminMonthlyRows}
-            monthlyHours={adminMonthlyHours}
-            monthlySalary={adminMonthlySalary}
-            instituteCount={adminInstitutes.length}
-          />
-        )}
-
-        {activeTab === "admin" && isAdmin && (
-          <AdminTab users={adminUsers} onApprove={handleApprove} onReject={handleReject} />
-        )}
       </div>
+
+      {adminMode && (
+        <div className="fixed inset-0 z-40 bg-slate-950 overflow-y-auto">
+          <div className="container min-h-full py-6">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <h1 className="mb-0">Admin Panel</h1>
+              <div className="flex items-center gap-2 text-sm text-slate-300">
+                <button
+                  type="button"
+                  className="btn-secondary w-auto px-3 py-1.5 text-xs flex items-center gap-2"
+                  onClick={() => setMenuOpen(true)}
+                >
+                  <Menu size={16} />
+                  Menu
+                </button>
+              </div>
+            </div>
+
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  className="btn-secondary w-auto px-3 py-1.5 text-xs"
+                  onClick={handleExitAdminMode}
+                >
+                  ← Back to Calculator
+                </button>
+              </div>
+            </div>
+
+            <div className="tabs mb-6">
+              <button
+                type="button"
+                className={`tab ${activeTab === "adminDashboard" ? "active" : ""}`}
+                onClick={() => setActiveTab("adminDashboard")}
+              >
+                Admin Dashboard
+              </button>
+              <button
+                type="button"
+                className={`tab ${activeTab === "admin" ? "active" : ""}`}
+                onClick={() => setActiveTab("admin")}
+              >
+                User Management
+              </button>
+            </div>
+
+            {activeTab === "adminDashboard" && isAdmin && (
+              <AdminDashboardTab
+                users={adminUsers}
+                selectedUserId={adminSelectedUserId}
+                onSelectUser={setAdminSelectedUserId}
+                selectedUser={selectedAdminUser}
+                month={adminMonth}
+                year={adminYear}
+                setMonth={setAdminMonth}
+                setYear={setAdminYear}
+                monthlyRows={adminMonthlyRows}
+                monthlyHours={adminMonthlyHours}
+                monthlySalary={adminMonthlySalary}
+                instituteCount={adminInstitutes.length}
+              />
+            )}
+
+            {activeTab === "admin" && isAdmin && (
+              <AdminTab users={adminUsers} onApprove={handleApprove} onReject={handleReject} />
+            )}
+          </div>
+        </div>
+      )}
 
       {menuOpen && (
         <div className="fixed inset-0 z-50 flex">
@@ -885,6 +874,19 @@ export default function App() {
                 </span>
                 <span className="text-slate-400">Add to home</span>
               </button>
+              {isAdmin && (
+                <button
+                  type="button"
+                  className="flex w-full items-center justify-between rounded-2xl border border-slate-700/70 bg-slate-950/70 px-4 py-3 text-left text-slate-100 hover:border-blue-400"
+                  onClick={handleAdminRedirect}
+                >
+                  <span className="flex items-center gap-2">
+                    <Shield size={18} />
+                    Admin Panel
+                  </span>
+                  <span className="text-slate-400">Manage users</span>
+                </button>
+              )}
               <button
                 type="button"
                 className="flex w-full items-center justify-between rounded-2xl border border-slate-700/70 bg-slate-950/70 px-4 py-3 text-left text-slate-100 hover:border-blue-400"
@@ -934,6 +936,10 @@ export default function App() {
             </div>
           </div>
         </div>
+      )}
+
+      {changePasswordModal && (
+        <ChangePassword onClose={() => setChangePasswordModal(false)} />
       )}
 
       <div className="footer">

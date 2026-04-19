@@ -3,6 +3,9 @@ import {
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
+  updatePassword,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
 } from "firebase/auth";
 import { auth } from "./firebase";
 import { createUserProfile, readUserProfile } from "./dataService";
@@ -28,4 +31,16 @@ export async function logout() {
 
 export async function forgotPassword(email) {
   await sendPasswordResetEmail(auth, email);
+}
+
+export async function changePassword(oldPassword, newPassword) {
+  const user = auth.currentUser;
+  if (!user) throw new Error("No user is currently logged in");
+
+  // Reauthenticate the user with their current password
+  const credential = EmailAuthProvider.credential(user.email, oldPassword);
+  await reauthenticateWithCredential(user, credential);
+
+  // Update the password
+  await updatePassword(user, newPassword);
 }

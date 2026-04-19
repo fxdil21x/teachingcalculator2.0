@@ -7,8 +7,8 @@ const TAB_LABELS = {
   admin: "Admin",
 };
 
-export default function Tabs({ activeTab, onTabChange, isAdmin, adminOnly = false }) {
-  const tabs = adminOnly ? ["adminDashboard", "admin"] : ["today", "monthly", "salary", "insights", ...(isAdmin ? ["adminDashboard", "admin"] : [])];
+export default function Tabs({ activeTab, onTabChange, isAdmin }) {
+  const tabs = ["today", "monthly", "salary", "insights"];
 
   return (
     <div className="tabs">
