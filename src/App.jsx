@@ -330,7 +330,13 @@ export default function App() {
       return;
     }
     await addEntry(todayPayload);
-    window.alert("Saved!");
+    await Swal.fire({
+      title: "Saved!",
+      text: "Your daily entry has been recorded successfully.",
+      icon: "success",
+      timer: 1500,
+      showConfirmButton: false,
+    });
     await reloadData();
   }
 
