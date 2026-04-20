@@ -992,9 +992,9 @@ export default function App() {
       )}
 
       {menuOpen && (
-        <div className="fixed inset-0 z-50 flex">
+        <div className="fixed inset-0 z-50 flex items-start">
           <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm" onClick={closeMenu}></div>
-          <div className="relative ml-auto h-full max-h-full w-full max-w-sm overflow-y-auto bg-slate-900 p-6 shadow-2xl">
+          <div className="relative ml-auto mt-10 h-auto max-h-[calc(100vh-4rem)] w-full max-w-sm overflow-y-auto bg-slate-900 p-6 pt-8 shadow-2xl">
             <div className="mb-6 flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-400">Menu</p>
