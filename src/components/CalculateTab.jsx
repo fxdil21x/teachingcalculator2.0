@@ -47,23 +47,12 @@ export default function CalculateTab({
                 Today
               </button>
             </div>
-            <div className="relative">
-              <input
-                type="text"
-                value={form.date ? new Date(form.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Select date'}
-                readOnly
-                onClick={() => document.getElementById('date-picker-hidden').showPicker()}
-                className="mb-0 cursor-pointer"
-                placeholder="Select date"
-              />
-              <input
-                id="date-picker-hidden"
-                type="date"
-                value={form.date}
-                onChange={(e) => setForm((p) => ({ ...p, date: e.target.value }))}
-                className="absolute opacity-0 w-0 h-0"
-              />
-            </div>
+            <input
+              type="date"
+              value={form.date}
+              onChange={(e) => setForm((p) => ({ ...p, date: e.target.value }))}
+              className="mb-0"
+            />
           </div>
 
           <div className="grid-two">
