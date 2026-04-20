@@ -43,7 +43,7 @@ function ChartBar({ label, value, maxValue, color = "blue", delay = 0 }) {
       <div className="w-20 text-sm text-slate-300 truncate">{label}</div>
       <div className="flex-1 bg-slate-700 rounded-full h-2.5 overflow-hidden">
         <div
-          className={`h-2.5 rounded-full ${colorClasses[color]} transition-all duration-700 ease-out`}
+          className={`h-2.5 rounded-full ${colorClasses[color]} transition-all duration-1000 ease-out`}
           style={{ width: `${percentage}%`, transitionDelay: `${delay}s` }}
         />
       </div>
@@ -158,7 +158,7 @@ export default function InsightsTab({ entries }) {
           title="Avg Hours/Day"
           value={`${insights.avgHoursPerDay.toFixed(1)}h`}
           subtitle="Daily teaching average"
-          delay={0.1}
+          delay={0.15}
           icon={
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -170,7 +170,7 @@ export default function InsightsTab({ entries }) {
           title="Avg Salary/Month"
           value={`₹${insights.avgSalaryPerMonth.toFixed(0)}`}
           subtitle="Monthly earnings average"
-          delay={0.15}
+          delay={0.25}
           icon={
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
@@ -182,7 +182,7 @@ export default function InsightsTab({ entries }) {
           title="Avg Leave/Month"
           value={`${insights.avgLeavePerMonth.toFixed(1)} days`}
           subtitle="Estimated monthly leave"
-          delay={0.2}
+          delay={0.35}
           icon={
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -194,7 +194,7 @@ export default function InsightsTab({ entries }) {
           title="Top Institute"
           value={insights.topInstitute[0]}
           subtitle={`${insights.topInstitute[1].hours.toFixed(1)}h total`}
-          delay={0.25}
+          delay={0.45}
           icon={
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -207,7 +207,7 @@ export default function InsightsTab({ entries }) {
       {/* Charts and Details */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Institute Performance */}
-        <div className="bg-slate-800/50 rounded-2xl p-5 sm:p-6 border border-slate-700/50 animate-slide-up" style={{ animationDelay: "0.3s" }}>
+        <div className="bg-slate-800/50 rounded-2xl p-5 sm:p-6 border border-slate-700/50 animate-slide-up" style={{ animationDelay: "0.5s" }}>
           <h3 className="text-lg font-semibold text-slate-200 mb-4">Institute Performance</h3>
           <div className="space-y-1">
             {insights.instituteStats.map(([name, stats], index) => (
@@ -217,14 +217,14 @@ export default function InsightsTab({ entries }) {
                 value={stats.hours}
                 maxValue={insights.instituteStats[0][1].hours}
                 color={index === 0 ? "blue" : "green"}
-                delay={0.35 + index * 0.05}
+                delay={0.55 + index * 0.08}
               />
             ))}
           </div>
         </div>
 
         {/* Weekly Pattern */}
-        <div className="bg-slate-800/50 rounded-2xl p-5 sm:p-6 border border-slate-700/50 animate-slide-up" style={{ animationDelay: "0.4s" }}>
+        <div className="bg-slate-800/50 rounded-2xl p-5 sm:p-6 border border-slate-700/50 animate-slide-up" style={{ animationDelay: "0.6s" }}>
           <h3 className="text-lg font-semibold text-slate-200 mb-4">Weekly Teaching Pattern</h3>
           <div className="space-y-1">
             {insights.weeklyStats.map((day, index) => (
@@ -234,11 +234,11 @@ export default function InsightsTab({ entries }) {
                 value={day.hours}
                 maxValue={Math.max(...insights.weeklyStats.map(d => d.hours)) || 1}
                 color={index === 0 || index === 6 ? "orange" : "blue"}
-                delay={0.45 + index * 0.05}
+                delay={0.65 + index * 0.06}
               />
             ))}
           </div>
-          <div className="mt-4 p-3 bg-slate-700/30 rounded-xl animate-fade-in" style={{ animationDelay: "0.8s" }}>
+          <div className="mt-4 p-3 bg-slate-700/30 rounded-xl animate-fade-in" style={{ animationDelay: "1.1s" }}>
             <div className="text-sm text-slate-300">
               <span className="font-medium">Busiest day:</span> {insights.busiestDay.name} ({insights.busiestDay.hours.toFixed(1)}h)
             </div>
@@ -247,7 +247,7 @@ export default function InsightsTab({ entries }) {
       </div>
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-slide-up" style={{ animationDelay: "0.5s" }}>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-slide-up" style={{ animationDelay: "0.7s" }}>
         <div className="text-center p-4 bg-slate-800/30 rounded-2xl border border-slate-700/50 hover-lift">
           <div className="text-xl sm:text-2xl font-bold text-slate-200 animate-count-up">{insights.totalHours.toFixed(1)}h</div>
           <div className="text-xs text-slate-400 mt-1">Total Hours</div>

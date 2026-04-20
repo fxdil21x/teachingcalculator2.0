@@ -47,12 +47,23 @@ export default function CalculateTab({
                 Today
               </button>
             </div>
-            <input
-              type="date"
-              value={form.date}
-              onChange={(e) => setForm((p) => ({ ...p, date: e.target.value }))}
-              className="mb-0"
-            />
+            <div className="relative">
+              <input
+                type="text"
+                value={form.date ? new Date(form.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Select date'}
+                readOnly
+                onClick={() => document.getElementById('date-picker-hidden').showPicker()}
+                className="mb-0 cursor-pointer"
+                placeholder="Select date"
+              />
+              <input
+                id="date-picker-hidden"
+                type="date"
+                value={form.date}
+                onChange={(e) => setForm((p) => ({ ...p, date: e.target.value }))}
+                className="absolute opacity-0 w-0 h-0"
+              />
+            </div>
           </div>
 
           <div className="grid-two">
@@ -109,7 +120,7 @@ export default function CalculateTab({
       </div>
 
       {/* Institute Card */}
-      <div className="form-card animate-slide-up" style={{ animationDelay: "0.1s" }}>
+      <div className="form-card animate-slide-up" style={{ animationDelay: "0.15s" }}>
         <div className="form-card-header">
           <div className="form-card-icon">
             <Building2 size={20} />
@@ -124,7 +135,7 @@ export default function CalculateTab({
         >
           {institutes.map((inst) => (
             <option key={inst.id} value={inst.id}>
-              {inst.name} - {inst.hourlyRate}/hr {inst.tds ? "(TDS)" : ""}
+              {inst.name}
             </option>
           ))}
           <option value="new">+ Add New Institute</option>
@@ -165,7 +176,7 @@ export default function CalculateTab({
         type="button"
         onClick={onCalculate}
         className="btn-primary w-full h-14 text-lg font-semibold press-scale animate-slide-up"
-        style={{ animationDelay: "0.2s" }}
+        style={{ animationDelay: "0.25s" }}
       >
         Calculate Hours & Salary
       </button>
@@ -193,7 +204,7 @@ export default function CalculateTab({
       )}
 
       {/* Collapsible Institutes Section */}
-      <div className="animate-slide-up" style={{ animationDelay: "0.3s" }}>
+      <div className="animate-slide-up" style={{ animationDelay: "0.35s" }}>
         <button
           type="button"
           onClick={() => setShowInstitutes(!showInstitutes)}
@@ -209,7 +220,7 @@ export default function CalculateTab({
               <div
                 key={inst.id}
                 className="entry-card stagger-item"
-                style={{ animationDelay: `${index * 0.05}s` }}
+                style={{ animationDelay: `${0.1 + index * 0.08}s` }}
               >
                 <div className="flex items-center justify-between">
                   <div>

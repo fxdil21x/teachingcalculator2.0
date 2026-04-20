@@ -5,8 +5,7 @@ export default function Header({ onMenuClick, title = "Teaching Hours Calculator
     <header className="app-header">
       <div className="app-header-logo">
         <img src="/image/LOGO NEW.png" alt="Logo" />
-        <h1 className="app-header-title hidden sm:block">{title}</h1>
-        <h1 className="app-header-title sm:hidden">TH Calculator</h1>
+        <h1 className="app-header-title">{title}</h1>
       </div>
       <button
         type="button"

@@ -388,13 +388,26 @@ export default function App() {
   }
 
   async function handleEditEntry(entry) {
+    // Ensure date is in YYYY-MM-DD format for the date input
+    let dateValue = entry.date || "";
+    if (!dateValue && entry.year && entry.month && entry.day) {
+      // Reconstruct date from day, month, year if date field is missing
+      const monthIndex = MONTHS.indexOf(entry.month);
+      if (monthIndex !== -1) {
+        const d = new Date(entry.year, monthIndex, entry.day);
+        dateValue = d.toISOString().split("T")[0];
+      }
+    }
+
     const { value: formValues } = await Swal.fire({
       title: "Edit Entry",
       html: `
-        <input id="swal-date" type="date" class="swal2-input" value="${entry.date || ""}" />
+        <label style="display: block; text-align: left; margin-bottom: 4px; font-size: 14px; color: #94a3b8;">Date</label>
+        <input id="swal-date" type="date" class="swal2-input" value="${dateValue}" style="margin-top: 0;" />
+        <label style="display: block; text-align: left; margin-bottom: 4px; margin-top: 12px; font-size: 14px; color: #94a3b8;">Hours Worked</label>
         <input id="swal-hours" type="number" step="0.01" min="0" class="swal2-input" placeholder="Hours" value="${(
           entry.minutes / 60
-        ).toFixed(2)}" />
+        ).toFixed(2)}" style="margin-top: 0;" />
       `,
       focusConfirm: false,
       showCancelButton: true,

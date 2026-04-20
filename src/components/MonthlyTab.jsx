@@ -89,7 +89,7 @@ export default function MonthlyTab({ month, year, setMonth, setYear, totalHours,
               <div
                 key={entry.id}
                 className="entry-card stagger-item"
-                style={{ animationDelay: `${index * 0.05}s` }}
+                style={{ animationDelay: `${0.1 + index * 0.08}s` }}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">

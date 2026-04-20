@@ -19,7 +19,7 @@ function ProfessionalBreakdown({ title, rows, total, period, delay = 0 }) {
           <div
             key={row.name}
             className="stagger-item flex flex-col gap-2 rounded-xl bg-slate-900/30 p-3 border border-slate-700/30 sm:flex-row sm:items-center sm:justify-between"
-            style={{ animationDelay: `${delay + (index + 1) * 0.05}s` }}
+            style={{ animationDelay: `${delay + 0.1 + (index + 1) * 0.08}s` }}
           >
             <div className="flex items-center gap-3">
               <span className="w-6 h-6 bg-blue-500/20 text-blue-300 rounded-full flex items-center justify-center text-xs font-medium">
@@ -122,18 +122,18 @@ export default function ReportsTab({
           rows={monthlyRows}
           total={monthlyTotal}
           period={`${MONTHS[month]} ${year}`}
-          delay={0.1}
+          delay={0.15}
         />
         <ProfessionalBreakdown
           title="All-Time Performance"
           rows={allTimeRows}
           total={allTimeTotal}
           period="Complete History"
-          delay={0.2}
+          delay={0.3}
         />
       </div>
 
-      <div className="p-4 bg-slate-800/30 rounded-2xl border border-slate-700/50 animate-slide-up" style={{ animationDelay: "0.3s" }}>
+      <div className="p-4 bg-slate-800/30 rounded-2xl border border-slate-700/50 animate-slide-up" style={{ animationDelay: "0.45s" }}>
         <h4 className="text-sm font-medium text-slate-300 mb-3">Report Summary</h4>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
           <div className="card-stat">
