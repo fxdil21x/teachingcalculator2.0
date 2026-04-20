@@ -17,6 +17,7 @@ import {
   addEntry,
   addInstitute,
   approveUser,
+  deleteUser,
   listEntries,
   listEntriesByUser,
   listInstitutes,
@@ -27,6 +28,7 @@ import {
   removeInstitute,
   updateEntry,
   updateInstitute,
+  updateUserProfile,
 } from "./services/dataService";
 import { ADMIN_EMAIL } from "./services/firebase";
 import { buildEntryPayload, calculateMinutes, calculateSalary, getYearForEntry } from "./utils/calculations";
@@ -227,9 +229,13 @@ export default function App() {
       window.alert("Fill institute name & hourly rate");
       return;
     }
-    await addInstitute({ name: newInstitute.name.trim(), hourlyRate: rate, tds: newInstitute.tds });
+    const newInstituteItem = await addInstitute({ name: newInstitute.name.trim(), hourlyRate: rate, tds: newInstitute.tds });
+    setInstitutes((prev) => [...prev, newInstituteItem]);
     setNewInstitute({ name: "", rate: "", tds: false });
-    await reloadData();
+    setForm((prev) => ({
+      ...prev,
+      instituteId: prev.instituteId === "new" ? newInstituteItem.id : prev.instituteId,
+    }));
   }
 
   async function handleEditInstitute(id) {
@@ -270,8 +276,8 @@ export default function App() {
     if (!formValues) return;
 
     await updateInstitute(id, formValues);
-    await Swal.fire({ title: "Updated", text: "Institute updated successfully.", icon: "success", timer: 1200, showConfirmButton: false });
-    await reloadData();
+    setInstitutes((prev) => prev.map((item) => (item.id === id ? { ...item, ...formValues } : item)));
+    Swal.fire({ title: "Updated", text: "Institute updated successfully.", icon: "success", timer: 1000, showConfirmButton: false });
   }
 
   async function handleDeleteInstitute(id) {
@@ -286,8 +292,13 @@ export default function App() {
     });
     if (!result.isConfirmed) return;
     await removeInstitute(id);
-    await Swal.fire({ title: "Deleted", text: "Institute deleted successfully.", icon: "success", timer: 1200, showConfirmButton: false });
-    await reloadData();
+    setInstitutes((prev) => prev.filter((item) => item.id !== id));
+    setForm((prev) => {
+      if (prev.instituteId !== id) return prev;
+      const nextInstituteId = institutes.find((item) => item.id !== id)?.id;
+      return { ...prev, instituteId: nextInstituteId || "new" };
+    });
+    Swal.fire({ title: "Deleted", text: "Institute deleted successfully.", icon: "success", timer: 1000, showConfirmButton: false });
   }
 
   function handleCalculate() {
@@ -329,15 +340,15 @@ export default function App() {
       });
       return;
     }
-    await addEntry(todayPayload);
-    await Swal.fire({
+    const addedEntry = await addEntry(todayPayload);
+    setEntries((prev) => [...prev, addedEntry]);
+    Swal.fire({
       title: "Saved!",
       text: "Your daily entry has been recorded successfully.",
       icon: "success",
-      timer: 1500,
+      timer: 1000,
       showConfirmButton: false,
     });
-    await reloadData();
   }
 
   async function handleDeleteEntry(id) {
@@ -352,8 +363,8 @@ export default function App() {
     });
     if (!result.isConfirmed) return;
     await removeEntry(id);
-    await Swal.fire({ title: "Deleted", text: "Entry deleted successfully.", icon: "success", timer: 1200, showConfirmButton: false });
-    await reloadData();
+    setEntries((prev) => prev.filter((item) => item.id !== id));
+    Swal.fire({ title: "Deleted", text: "Entry deleted successfully.", icon: "success", timer: 1000, showConfirmButton: false });
   }
 
   async function handleEditEntry(entry) {
@@ -382,22 +393,24 @@ export default function App() {
     if (!formValues) return;
 
     const d = new Date(formValues.date);
-    await updateEntry(entry.id, {
+    const updatedEntry = {
+      ...entry,
       date: formValues.date,
       minutes: Math.round(formValues.hours * 60),
       day: d.getDate(),
       month: MONTHS[d.getMonth()],
       year: d.getFullYear(),
-    });
-
-    await Swal.fire({
+    };
+    const { id, ...payload } = updatedEntry;
+    await updateEntry(entry.id, payload);
+    setEntries((prev) => prev.map((item) => (item.id === entry.id ? updatedEntry : item)));
+    Swal.fire({
       title: "Updated",
       text: "Entry updated successfully.",
       icon: "success",
-      timer: 1200,
+      timer: 1000,
       showConfirmButton: false,
     });
-    await reloadData();
   }
 
   async function downloadCsv() {
@@ -586,34 +599,67 @@ export default function App() {
 
   async function handleApprove(uid) {
     await approveUser(uid);
-    await reloadUsers();
+    setAdminUsers((prev) => prev.map((user) => (user.id === uid ? { ...user, status: "approved" } : user)));
     await Swal.fire({
       title: "User Approved",
       text: "The user has been approved successfully.",
       icon: "success",
-      timer: 1500,
+      timer: 1000,
       showConfirmButton: false,
     });
+    reloadUsers().catch((e) => window.alert(e.message));
   }
 
   async function handleReject(uid) {
     await rejectUser(uid);
+    setAdminUsers((prev) => prev.map((user) => (user.id === uid ? { ...user, status: "rejected" } : user)));
     await Swal.fire({
       title: "Rejected",
       text: "User has been rejected.",
       icon: "info",
-      timer: 1500,
+      timer: 1000,
       showConfirmButton: false,
     });
-    await reloadUsers();
+    reloadUsers().catch((e) => window.alert(e.message));
   }
 
-  async function handleSignup(email, password) {
-    setSignupEmail(email);
+  async function handleDeleteUser(uid, email) {
+    const result = await Swal.fire({
+      title: "Delete user?",
+      text: `Delete ${email} and all of their data permanently?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#dc2626",
+    });
+    if (!result.isConfirmed) return;
+
     try {
-      await signup(email, password);
+      await deleteUser(uid);
+      setAdminUsers((prev) => prev.filter((user) => user.id !== uid));
+      await Swal.fire({
+        title: "Deleted",
+        text: "The user and their data have been removed.",
+        icon: "success",
+        timer: 800,
+        showConfirmButton: false,
+      });
+    } catch (err) {
+      console.error("Delete error:", err);
+      await Swal.fire({
+        title: "Delete Failed",
+        text: err.message || "Failed to delete user. Please check browser console for details.",
+        icon: "error",
+      });
+    }
+  }
+
+  async function handleSignup(email, password, name) {
+    try {
+      await signup(email, password, name);
+      setSignupEmail(email);
     } catch (e) {
-      setSignupEmail(null);
       window.alert(e.message);
     }
   }
@@ -660,6 +706,47 @@ export default function App() {
       window.alert("Reset link sent!");
     } catch (e) {
       window.alert(e.message);
+    }
+  }
+
+  async function handleEditName() {
+    const { value: updatedProfile } = await Swal.fire({
+      title: "Update Profile",
+      html: `
+        <input id="swal-name" type="text" class="swal2-input" placeholder="Full name" value="${user?.profile?.name || ""}" />
+        <input id="swal-phone" type="tel" class="swal2-input" placeholder="Phone number" value="${user?.profile?.phone || ""}" />
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: "Save",
+      cancelButtonText: "Cancel",
+      preConfirm: () => {
+        const nameValue = document.getElementById("swal-name")?.value || "";
+        const phoneValue = document.getElementById("swal-phone")?.value || "";
+        if (!nameValue.trim()) {
+          Swal.showValidationMessage("Please enter your name.");
+          return null;
+        }
+        return {
+          name: nameValue.trim(),
+          phone: phoneValue.trim(),
+        };
+      },
+    });
+
+    if (updatedProfile) {
+      try {
+        await updateUserProfile(user.uid, updatedProfile);
+        await Swal.fire({
+          title: "Profile updated",
+          text: "Your name and phone number were saved.",
+          icon: "success",
+          timer: 1200,
+          showConfirmButton: false,
+        });
+      } catch (err) {
+        window.alert("Failed to update profile: " + err.message);
+      }
     }
   }
 
@@ -876,7 +963,12 @@ export default function App() {
             )}
 
             {activeTab === "admin" && isAdmin && (
-              <AdminTab users={adminUsers} onApprove={handleApprove} onReject={handleReject} />
+              <AdminTab
+                users={adminUsers}
+                onApprove={handleApprove}
+                onReject={handleReject}
+                onDelete={handleDeleteUser}
+              />
             )}
           </div>
         </div>
@@ -901,12 +993,26 @@ export default function App() {
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-300">
                   <User size={20} />
                 </div>
-                <div>
-                  <p className="text-sm text-slate-400">Signed in as</p>
-                  <p className="break-words text-slate-100">{user?.email}</p>
+                <div className="flex-1">
+                  <p className="text-sm text-slate-400">Welcome</p>
+                  <p className="text-lg font-semibold text-slate-100">{user?.profile?.name || user?.email}</p>
+                  <p className="text-xs text-slate-500 break-words">{user?.email}</p>
+                  {user?.profile?.phone && (
+                    <p className="text-xs text-slate-500 break-words">{user?.profile?.phone}</p>
+                  )}
                 </div>
               </div>
-              <p className="text-xs text-slate-500">{isAdmin ? "Administrator" : isApproved ? "Approved user" : "Pending approval"}</p>
+              <p className="text-xs text-slate-500 mb-3">{isAdmin ? "Administrator" : isApproved ? "Approved user" : "Pending approval"}</p>
+                <button
+                  type="button"
+                  className="w-full rounded-lg bg-blue-500/10 px-3 py-1.5 text-xs text-blue-300 hover:bg-blue-500/20"
+                  onClick={() => {
+                    closeMenu();
+                    handleEditName();
+                  }}
+                >
+                  Update Profile
+                </button>
             </div>
 
             <div className="space-y-3">

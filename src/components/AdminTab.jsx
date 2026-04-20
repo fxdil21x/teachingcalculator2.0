@@ -1,4 +1,4 @@
-export default function AdminTab({ users, onApprove, onReject }) {
+export default function AdminTab({ users, onApprove, onReject, onDelete }) {
   return (
     <div className="tab-content active">
       <h2>Admin Panel</h2>
@@ -17,6 +17,9 @@ export default function AdminTab({ users, onApprove, onReject }) {
               </button>
               <button type="button" className="reject" onClick={() => onReject(user.id)}>
                 Reject
+              </button>
+              <button type="button" className="reject" onClick={() => onDelete(user.id, user.email)}>
+                Delete
               </button>
             </div>
           </div>

@@ -10,9 +10,9 @@ import {
 import { auth } from "./firebase";
 import { createUserProfile, readUserProfile } from "./dataService";
 
-export async function signup(email, password) {
+export async function signup(email, password, name = "") {
   const res = await createUserWithEmailAndPassword(auth, email, password);
-  await createUserProfile(res.user.uid, email);
+  await createUserProfile(res.user.uid, email, name);
   await signOut(auth);
 }
 

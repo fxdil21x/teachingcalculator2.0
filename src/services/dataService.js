@@ -23,7 +23,8 @@ export async function listInstitutes() {
 
 export async function addInstitute(payload) {
   const uid = uidRequired();
-  await addDoc(collection(db, "users", uid, "institutes"), payload);
+  const docRef = await addDoc(collection(db, "users", uid, "institutes"), payload);
+  return { id: docRef.id, ...payload };
 }
 
 export async function updateInstitute(id, payload) {
@@ -49,7 +50,8 @@ export async function listEntriesByUser(uid) {
 
 export async function addEntry(payload) {
   const uid = uidRequired();
-  await addDoc(collection(db, "users", uid, "entries"), payload);
+  const docRef = await addDoc(collection(db, "users", uid, "entries"), payload);
+  return { id: docRef.id, ...payload };
 }
 
 export async function removeEntry(id) {
@@ -81,8 +83,42 @@ export async function rejectUser(uid) {
   await updateDoc(doc(db, "users", uid), { status: "rejected" });
 }
 
-export async function createUserProfile(uid, email) {
-  await setDoc(doc(db, "users", uid), { email, status: "pending" });
+export async function deleteUser(uid) {
+  try {
+    const subcollections = ["institutes", "entries", "meta"];
+    
+    // Delete all subcollections in parallel
+    const deletionPromises = subcollections.map(async (sub) => {
+      try {
+        const snap = await getDocs(collection(db, "users", uid, sub));
+        // Delete all docs in this subcollection in parallel
+        const docDeletions = snap.docs.map((docSnap) =>
+          deleteDoc(doc(db, "users", uid, sub, docSnap.id))
+        );
+        await Promise.all(docDeletions);
+      } catch (err) {
+        console.warn(`Error deleting subcollection ${sub}:`, err);
+      }
+    });
+    
+    // Wait for all subcollections to be deleted
+    await Promise.all(deletionPromises);
+    
+    // Finally, delete the user document
+    await deleteDoc(doc(db, "users", uid));
+    console.log(`User ${uid} deleted successfully`);
+  } catch (err) {
+    console.error(`Error deleting user ${uid}:`, err);
+    throw new Error(`Failed to delete user: ${err.message}`);
+  }
+}
+
+export async function createUserProfile(uid, email, name = "") {
+  await setDoc(doc(db, "users", uid), { email, name: name || "", status: "pending" });
+}
+
+export async function updateUserProfile(uid, updates) {
+  await updateDoc(doc(db, "users", uid), updates);
 }
 
 export async function readUserProfile(uid) {
