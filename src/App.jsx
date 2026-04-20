@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Eye, EyeOff, Menu, X, User, Lock, Key, HelpCircle, LogOut, Shield } from "lucide-react";
+import { Eye, EyeOff, Menu, X, User, Lock, Key, HelpCircle, LogOut, Shield, Calculator } from "lucide-react";
 import Swal from "sweetalert2";
 import AdminTab from "./components/AdminTab";
 import AdminDashboardTab, { buildAdminMonthlyRows } from "./components/AdminDashboardTab";
@@ -10,6 +10,9 @@ import InsightsTab from "./components/InsightsTab";
 import MonthlyTab from "./components/MonthlyTab";
 import ReportsTab from "./components/ReportsTab";
 import Tabs from "./components/Tabs";
+import BottomNav from "./components/ui/BottomNav";
+import Header from "./components/ui/Header";
+import FAB from "./components/ui/FAB";
 import { useAuthState } from "./hooks/useAuthState";
 import { usePwaInstall } from "./hooks/usePwaInstall";
 import { login, logout, signup, forgotPassword } from "./services/authService";
@@ -767,19 +770,31 @@ export default function App() {
     }
   }
 
-  if (loading) return <div className="loading">Loading...</div>;
+  if (loading) return (
+    <div className="loading">
+      <div className="text-center animate-fade-in">
+        <img src="/image/LOGO NEW.png" alt="Logo" className="h-16 w-16 mx-auto mb-4 rounded-2xl shadow-lg animate-pulse" />
+        <p className="text-slate-400">Loading...</p>
+      </div>
+    </div>
+  );
 
   if (signupEmail) {
     return (
       <div className="app-shell justify-center">
-        <div className="w-full max-w-lg rounded-2xl border border-amber-500/40 bg-slate-900/80 p-6 text-center shadow-2xl backdrop-blur">
+        <div className="w-full max-w-lg rounded-2xl border border-amber-500/40 bg-slate-900/80 p-6 text-center shadow-2xl backdrop-blur animate-scale-in">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-amber-500/10 flex items-center justify-center">
+            <svg className="w-8 h-8 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
           <h2 className="mb-2 text-2xl font-semibold text-amber-200">Account Pending Approval</h2>
           <p className="mb-5 text-slate-300">{signupEmail}</p>
           <p className="mb-6 text-slate-400">Your account is created and waiting for admin approval. You can close and login again later.</p>
           <div className="flex flex-wrap justify-center gap-2">
             <button
               type="button"
-              className="btn-secondary w-auto px-4"
+              className="btn-secondary w-auto px-4 press-scale"
               onClick={async () => {
                 await logout();
                 setSignupEmail(null);
@@ -787,7 +802,7 @@ export default function App() {
             >
               Close
             </button>
-            <button type="button" className="btn-secondary w-auto px-4" onClick={install}>
+            <button type="button" className="btn-secondary w-auto px-4 press-scale" onClick={install}>
               Install App
             </button>
           </div>
@@ -799,13 +814,16 @@ export default function App() {
   if (!user) {
     return (
       <div className="app-shell justify-center">
-        <div className="container max-w-5xl">
+        <div className="container max-w-5xl animate-slide-up">
           <div className="grid items-center gap-8 md:grid-cols-2">
-            <div className="space-y-4">
+            <div className="space-y-4 text-center md:text-left">
+              <div className="flex justify-center md:justify-start mb-4">
+                <img src="/image/LOGO NEW.png" alt="Logo" className="h-16 w-16 rounded-2xl shadow-lg" />
+              </div>
               <p className="inline-block rounded-full border border-blue-400/40 bg-blue-500/15 px-3 py-1 text-xs uppercase tracking-wider text-blue-200">
                 Welcome back
               </p>
-              <h1 className="text-left">Teaching Hours Calculator</h1>
+              <h1 className="text-center md:text-left">Teaching Hours Calculator</h1>
               <p className="text-slate-300">
                 Login to track your classes, calculate salary, and access monthly reports. If you are new, sign up and wait for
                 admin approval.
@@ -832,15 +850,20 @@ export default function App() {
   if (!isApproved) {
     return (
       <div className="app-shell justify-center">
-        <div className="w-full max-w-lg rounded-2xl border border-amber-500/40 bg-slate-900/80 p-6 text-center shadow-2xl backdrop-blur">
+        <div className="w-full max-w-lg rounded-2xl border border-amber-500/40 bg-slate-900/80 p-6 text-center shadow-2xl backdrop-blur animate-scale-in">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-amber-500/10 flex items-center justify-center">
+            <svg className="w-8 h-8 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
           <h2 className="mb-2 text-2xl font-semibold text-amber-200">Account Pending Approval</h2>
           <p className="mb-5 text-slate-300">{user.email}</p>
           <p className="mb-6 text-slate-400">Your account is created and waiting for admin approval. You can close and login again later.</p>
           <div className="flex flex-wrap justify-center gap-2">
-            <button type="button" className="btn-secondary w-auto px-4" onClick={logout}>
+            <button type="button" className="btn-secondary w-auto px-4 press-scale" onClick={logout}>
               Logout
             </button>
-            <button type="button" className="btn-secondary w-auto px-4" onClick={install}>
+            <button type="button" className="btn-secondary w-auto px-4 press-scale" onClick={install}>
               Install App
             </button>
           </div>
@@ -851,20 +874,8 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <div className="container">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <h1 className="mb-0">Teaching Hours Calculator</h1>
-          <div className="flex items-center gap-2 text-sm text-slate-300">
-            <button
-              type="button"
-              className="btn-secondary w-auto px-3 py-1.5 text-xs flex items-center gap-2"
-              onClick={() => setMenuOpen(true)}
-            >
-              <Menu size={16} />
-              Menu
-            </button>
-          </div>
-        </div>
+      <Header onMenuClick={() => setMenuOpen(true)} />
+      <div className="container animate-fade-in">
         <Tabs activeTab={activeTab} onTabChange={handleTabChange} isAdmin={isAdmin} />
 
         {activeTab === "today" && isApproved && (
@@ -1115,7 +1126,13 @@ export default function App() {
         <ChangePassword onClose={() => setChangePasswordModal(false)} />
       )}
 
-      <div className="footer">
+      <BottomNav activeTab={activeTab} onTabChange={handleTabChange} />
+
+      {activeTab === "today" && (
+        <FAB onClick={() => document.querySelector('input[type="date"]')?.focus()} icon={Calculator} label="Quick Calculate" />
+      )}
+
+      <div className="footer hidden md:block">
         <p>
           Created by <span>Fadil Rafeek CMA</span>
         </p>

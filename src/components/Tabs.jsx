@@ -1,27 +1,29 @@
-const TAB_LABELS = {
-  today: "Calculate",
-  monthly: "Monthly Hours",
-  salary: "Reports",
-  insights: "Insights",
-  adminDashboard: "Admin Dashboard",
-  admin: "Admin",
-};
+import { Calculator, Calendar, FileText, BarChart3 } from "lucide-react";
+
+const TAB_CONFIG = [
+  { id: "today", label: "Calculate", icon: Calculator },
+  { id: "monthly", label: "Monthly Hours", icon: Calendar },
+  { id: "salary", label: "Reports", icon: FileText },
+  { id: "insights", label: "Insights", icon: BarChart3 },
+];
 
 export default function Tabs({ activeTab, onTabChange, isAdmin }) {
-  const tabs = ["today", "monthly", "salary", "insights"];
-
   return (
     <div className="tabs">
-      {tabs.map((tab) => (
-        <button
-          key={tab}
-          type="button"
-          className={`tab ${activeTab === tab ? "active" : ""}`}
-          onClick={() => onTabChange(tab)}
-        >
-          {TAB_LABELS[tab]}
-        </button>
-      ))}
+      {TAB_CONFIG.map((tab) => {
+        const Icon = tab.icon;
+        return (
+          <button
+            key={tab.id}
+            type="button"
+            className={`tab ${activeTab === tab.id ? "active" : ""}`}
+            onClick={() => onTabChange(tab.id)}
+          >
+            <Icon size={16} className="mr-2" />
+            {tab.label}
+          </button>
+        );
+      })}
     </div>
   );
 }
