@@ -52,7 +52,7 @@ const ALL_TABS = ["today", "monthly", "salary", "insights", "adminDashboard", "a
 const ADMIN_ONLY_TABS = ["adminDashboard", "admin"];
 
 export default function App() {
-  const { user, isAdmin, isApproved, loading } = useAuthState();
+  const { user, profile, isAdmin, isApproved, loading } = useAuthState();
   const { install } = usePwaInstall();
 
   const now = new Date();
@@ -166,7 +166,24 @@ export default function App() {
 
   async function handleMenuLogout() {
     closeMenu();
+    const result = await Swal.fire({
+      title: "Logout?",
+      text: "Are you sure you want to logout?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Yes, logout",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#dc2626",
+    });
+    if (!result.isConfirmed) return;
     await logout();
+    await Swal.fire({
+      title: "Logged out",
+      text: "You have been logged out successfully.",
+      icon: "success",
+      timer: 1200,
+      showConfirmButton: false,
+    });
   }
 
   async function handleMenuChangePassword() {
@@ -713,8 +730,8 @@ export default function App() {
     const { value: updatedProfile } = await Swal.fire({
       title: "Update Profile",
       html: `
-        <input id="swal-name" type="text" class="swal2-input" placeholder="Full name" value="${user?.profile?.name || ""}" />
-        <input id="swal-phone" type="tel" class="swal2-input" placeholder="Phone number" value="${user?.profile?.phone || ""}" />
+        <input id="swal-name" type="text" class="swal2-input" placeholder="Full name" value="${profile?.name || ""}" />
+        <input id="swal-phone" type="tel" class="swal2-input" placeholder="Phone number" value="${profile?.phone || ""}" />
       `,
       focusConfirm: false,
       showCancelButton: true,
@@ -995,10 +1012,10 @@ export default function App() {
                 </div>
                 <div className="flex-1">
                   <p className="text-sm text-slate-400">Welcome</p>
-                  <p className="text-lg font-semibold text-slate-100">{user?.profile?.name || user?.email}</p>
+                  <p className="text-lg font-semibold text-slate-100">{profile?.name || user?.email}</p>
                   <p className="text-xs text-slate-500 break-words">{user?.email}</p>
-                  {user?.profile?.phone && (
-                    <p className="text-xs text-slate-500 break-words">{user?.profile?.phone}</p>
+                  {profile?.phone && (
+                    <p className="text-xs text-slate-500 break-words">{profile.phone}</p>
                   )}
                 </div>
               </div>

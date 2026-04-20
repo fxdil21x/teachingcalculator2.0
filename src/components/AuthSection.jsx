@@ -31,8 +31,7 @@ export default function AuthSection({ onLogin, onSignup, onAdminLogin, onForgotP
     try {
       if (mode === "login") await onLogin(email.trim(), password);
       else if (mode === "signup") {
-        await onSignup(email.trim(), password, name.trim());
-        await Swal.fire({
+        Swal.fire({
           title: "Sign up submitted",
           text: "Your request has been submitted. Please wait for admin approval.",
           icon: "success",
@@ -40,6 +39,7 @@ export default function AuthSection({ onLogin, onSignup, onAdminLogin, onForgotP
           timerProgressBar: true,
           showConfirmButton: false,
         });
+        await onSignup(email.trim(), password, name.trim());
       } else await onAdminLogin(password);
       setPassword("");
     } finally {
