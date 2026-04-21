@@ -82,14 +82,14 @@ export default function CalculateTab({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
+          <div className="grid grid-cols-2 gap-2 sm:gap-4">
+            <div className="min-w-0">
               <div className="flex items-center justify-between mb-1">
-                <label className="mb-0 flex items-center gap-2">
-                  <Clock size={14} />
+                <label className="mb-0 flex items-center gap-1 text-xs truncate">
+                  <Clock size={13} />
                   From
                 </label>
-                <button type="button" className="quick-btn" onClick={() => setNow("fromTime")}>
+                <button type="button" className="quick-btn shrink-0" onClick={() => setNow("fromTime")}>
                   Now
                 </button>
               </div>
@@ -97,16 +97,16 @@ export default function CalculateTab({
                 type="time"
                 value={form.fromTime}
                 onChange={(e) => setForm((p) => ({ ...p, fromTime: e.target.value }))}
-                className="mb-0"
+                className="mb-0 text-sm px-2 sm:px-3 w-full min-w-0"
               />
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center justify-between mb-1">
-                <label className="mb-0 flex items-center gap-2">
-                  <Clock size={14} />
+                <label className="mb-0 flex items-center gap-1 text-xs truncate">
+                  <Clock size={13} />
                   To
                 </label>
-                <button type="button" className="quick-btn" onClick={() => setNow("toTime")}>
+                <button type="button" className="quick-btn shrink-0" onClick={() => setNow("toTime")}>
                   Now
                 </button>
               </div>
@@ -114,7 +114,7 @@ export default function CalculateTab({
                 type="time"
                 value={form.toTime}
                 onChange={(e) => setForm((p) => ({ ...p, toTime: e.target.value }))}
-                className="mb-0"
+                className="mb-0 text-sm px-2 sm:px-3 w-full min-w-0"
               />
             </div>
           </div>

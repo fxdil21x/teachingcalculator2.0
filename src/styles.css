@@ -358,12 +358,12 @@
   }
 
   .app-header-logo img {
-    @apply h-10 w-10 sm:h-12 sm:w-12 rounded-xl;
+    @apply h-12 w-12 sm:h-12 sm:w-12 rounded-xl;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
   }
 
   .app-header-title {
-    @apply text-xl sm:text-2xl font-bold text-slate-100 leading-tight ml-2;
+    @apply text-xl sm:text-2xl font-bold text-slate-100 leading-tight;
   }
 
   /* Empty State */
