@@ -354,16 +354,16 @@
   }
 
   .app-header-logo {
-    @apply flex items-center gap-3;
+    @apply flex items-center gap-2;
   }
 
   .app-header-logo img {
-    @apply h-8 w-8 sm:h-9 sm:w-9 rounded-lg;
+    @apply h-16 w-16 sm:h-14 sm:w-14 rounded-xl ml-5;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
   }
 
   .app-header-title {
-    @apply text-xl sm:text-2xl font-bold text-slate-100 leading-tight;
+    @apply text-2xl sm:text-3xl font-bold text-slate-100 leading-tight -ml-5;
   }
 
   /* Empty State */
@@ -495,7 +495,7 @@
   }
 
   @media (max-width: 767px) {
-    .tabs { display: none; }
+    .tabs:not(.admin-tabs) { display: none; }
     .app-shell {
       padding-bottom: calc(80px + env(safe-area-inset-bottom));
     }

@@ -22,7 +22,7 @@ export default function MonthlyTab({ month, year, setMonth, setYear, totalHours,
   };
 
   return (
-    <div className="tab-content active space-y-4">
+    <div className="tab-content active space-y-4 animate-fade-in">
       {/* Month Selector */}
       <div className="month-selector animate-fade-in">
         <button type="button" className="month-selector-btn press-scale" onClick={goToPrevMonth}>

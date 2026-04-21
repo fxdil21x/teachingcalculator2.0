@@ -113,6 +113,31 @@ export async function deleteUser(uid) {
   }
 }
 
+// ── Batches ──────────────────────────────────────────────────────────────────
+// Batch doc: { name, instituteId, instituteName, sections: [{id, name}] }
+
+export async function listBatches() {
+  const uid = uidRequired();
+  const snap = await getDocs(collection(db, "users", uid, "batches"));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+export async function addBatch(payload) {
+  const uid = uidRequired();
+  const docRef = await addDoc(collection(db, "users", uid, "batches"), payload);
+  return { id: docRef.id, ...payload };
+}
+
+export async function updateBatch(id, payload) {
+  const uid = uidRequired();
+  await updateDoc(doc(db, "users", uid, "batches", id), payload);
+}
+
+export async function removeBatch(id) {
+  const uid = uidRequired();
+  await deleteDoc(doc(db, "users", uid, "batches", id));
+}
+
 export async function createUserProfile(uid, email, name = "") {
   await setDoc(doc(db, "users", uid), { email, name: name || "", status: "pending" });
 }

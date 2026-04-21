@@ -75,7 +75,7 @@ export default function ReportsTab({
   };
 
   return (
-    <div className="tab-content active space-y-6">
+    <div className="tab-content active space-y-6 animate-fade-in">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between animate-fade-in">
         <h2 className="text-2xl font-bold text-slate-200">Salary Reports</h2>
         <button

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Eye, EyeOff, Menu, X, User, Lock, Key, HelpCircle, LogOut, Shield, Calculator } from "lucide-react";
 import Swal from "sweetalert2";
+import BatchReportTab from "./components/BatchReportTab";
 import AdminTab from "./components/AdminTab";
 import AdminDashboardTab, { buildAdminMonthlyRows } from "./components/AdminDashboardTab";
 import AuthSection from "./components/AuthSection";
@@ -18,9 +19,13 @@ import { usePwaInstall } from "./hooks/usePwaInstall";
 import { login, logout, signup, forgotPassword } from "./services/authService";
 import {
   addEntry,
+  addBatch,
+  updateBatch,
+  removeBatch,
   addInstitute,
   approveUser,
   deleteUser,
+  listBatches,
   listEntries,
   listEntriesByUser,
   listInstitutes,
@@ -51,7 +56,7 @@ function aggregateRows(entries, sortDesc = false) {
   return rows;
 }
 
-const ALL_TABS = ["today", "monthly", "salary", "insights", "adminDashboard", "admin"];
+const ALL_TABS = ["today", "monthly", "salary", "insights", "batch-report", "adminDashboard", "admin"];
 const ADMIN_ONLY_TABS = ["adminDashboard", "admin"];
 
 export default function App() {
@@ -75,8 +80,9 @@ export default function App() {
   const [year, setYear] = useState(now.getFullYear());
   const [salaryMonth, setSalaryMonth] = useState(now.getMonth());
   const [salaryYear, setSalaryYear] = useState(now.getFullYear());
-  const [form, setForm] = useState({ date: "", fromTime: "", toTime: "", breakTime: "0", instituteId: "" });
+  const [form, setForm] = useState({ date: "", fromTime: "", toTime: "", breakTime: "0", instituteId: "", batchId: "", sectionId: "" });
   const [newInstitute, setNewInstitute] = useState({ name: "", rate: "", tds: false });
+  const [batches, setBatches] = useState([]);
   const [result, setResult] = useState({ hours: "0", salary: "0", date: "" });
   const [todayPayload, setTodayPayload] = useState(null);
   const [signupEmail, setSignupEmail] = useState(null);
@@ -94,9 +100,10 @@ export default function App() {
   }, []);
 
   async function reloadData() {
-    const [inst, ent] = await Promise.all([listInstitutes(), listEntries()]);
+    const [inst, ent, batchList] = await Promise.all([listInstitutes(), listEntries(), listBatches()]);
     setInstitutes(inst);
     setEntries(ent);
+    setBatches(batchList);
     setForm((prev) => ({
       ...prev,
       instituteId: inst.length > 0 ? prev.instituteId || inst[0].id : "new",
@@ -321,6 +328,87 @@ export default function App() {
     Swal.fire({ title: "Deleted", text: "Institute deleted successfully.", icon: "success", timer: 1000, showConfirmButton: false });
   }
 
+  async function handleAddBatch(batchName) {
+    const institute = institutes.find((i) => i.id === form.instituteId);
+    if (!institute) return;
+    const newBatch = await addBatch({
+      name: batchName,
+      instituteId: institute.id,
+      instituteName: institute.name,
+      sections: [],
+    });
+    setBatches((prev) => [...prev, newBatch]);
+    setForm((prev) => ({ ...prev, batchId: newBatch.id, sectionId: "" }));
+  }
+
+  async function handleAddSection(batchId, sectionName) {
+    const batch = batches.find((b) => b.id === batchId);
+    if (!batch) return;
+    const newSection = { id: `${Date.now()}`, name: sectionName };
+    const updatedSections = [...(batch.sections || []), newSection];
+    await updateBatch(batchId, { sections: updatedSections });
+    setBatches((prev) =>
+      prev.map((b) => (b.id === batchId ? { ...b, sections: updatedSections } : b))
+    );
+    setForm((prev) => ({ ...prev, sectionId: newSection.id }));
+  }
+
+  async function handleRenameBatch(batchId, newName) {
+    await updateBatch(batchId, { name: newName });
+    setBatches((prev) => prev.map((b) => (b.id === batchId ? { ...b, name: newName } : b)));
+  }
+
+  async function handleDeleteSection(batchId, sectionId) {
+    const batch = batches.find((b) => b.id === batchId);
+    if (!batch) return;
+    const result = await Swal.fire({
+      title: "Delete section?",
+      text: "Sessions already recorded with this section are kept.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#dc2626",
+    });
+    if (!result.isConfirmed) return;
+    const updatedSections = batch.sections.filter((s) => s.id !== sectionId);
+    await updateBatch(batchId, { sections: updatedSections });
+    setBatches((prev) =>
+      prev.map((b) => (b.id === batchId ? { ...b, sections: updatedSections } : b))
+    );
+    if (form.sectionId === sectionId) setForm((prev) => ({ ...prev, sectionId: "" }));
+    Swal.fire({ title: "Deleted", icon: "success", timer: 800, showConfirmButton: false });
+  }
+
+  async function handleRenameSection(batchId, sectionId, newName) {
+    const batch = batches.find((b) => b.id === batchId);
+    if (!batch) return;
+    const updatedSections = batch.sections.map((s) =>
+      s.id === sectionId ? { ...s, name: newName } : s
+    );
+    await updateBatch(batchId, { sections: updatedSections });
+    setBatches((prev) =>
+      prev.map((b) => (b.id === batchId ? { ...b, sections: updatedSections } : b))
+    );
+  }
+
+  async function handleDeleteBatch(batchId) {
+    const result = await Swal.fire({
+      title: "Delete batch?",
+      text: "This will delete the batch and all its sections. Sessions already recorded are kept.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#dc2626",
+    });
+    if (!result.isConfirmed) return;
+    await removeBatch(batchId);
+    setBatches((prev) => prev.filter((b) => b.id !== batchId));
+    setForm((prev) => ({ ...prev, batchId: "", sectionId: "" }));
+    Swal.fire({ title: "Deleted", icon: "success", timer: 800, showConfirmButton: false });
+  }
+
   function handleCalculate() {
     if (!form.date || !form.fromTime || !form.toTime || !form.instituteId || form.instituteId === "new") {
       window.alert("Fill all fields");
@@ -334,7 +422,20 @@ export default function App() {
     const institute = institutes.find((i) => i.id === form.instituteId);
     if (!institute) return;
     const salary = calculateSalary(minutes, institute.hourlyRate, institute.tds);
-    const payload = buildEntryPayload(form.date, minutes, institute);
+
+    // Build batch/section extras
+    const batch = batches.find((b) => b.id === form.batchId);
+    const section = batch?.sections?.find((s) => s.id === form.sectionId);
+    const batchExtras = batch
+      ? {
+          batchId: batch.id,
+          batchName: batch.name,
+          sectionId: section?.id || "",
+          sectionName: section?.name || "",
+        }
+      : {};
+
+    const payload = { ...buildEntryPayload(form.date, minutes, institute), ...batchExtras };
     setTodayPayload(payload);
     setResult({ hours: (minutes / 60).toFixed(2), salary: salary.toFixed(2), date: form.date });
   }
@@ -391,7 +492,6 @@ export default function App() {
     // Ensure date is in YYYY-MM-DD format for the date input
     let dateValue = entry.date || "";
     if (!dateValue && entry.year && entry.month && entry.day) {
-      // Reconstruct date from day, month, year if date field is missing
       const monthIndex = MONTHS.indexOf(entry.month);
       if (monthIndex !== -1) {
         const d = new Date(entry.year, monthIndex, entry.day);
@@ -399,19 +499,62 @@ export default function App() {
       }
     }
 
+    // Build batch options for the entry's institute
+    const entryBatches = batches.filter((b) => b.instituteId === entry.instituteId);
+    const currentBatch = batches.find((b) => b.id === entry.batchId);
+    const batchOptionsHtml = entryBatches
+      .map(
+        (b) =>
+          `<option value="${b.id}" data-sections='${JSON.stringify(b.sections || [])}' ${
+            entry.batchId === b.id ? "selected" : ""
+          }>${b.name}</option>`,
+      )
+      .join("");
+    const sectionOptionsHtml = (currentBatch?.sections || [])
+      .map(
+        (s) =>
+          `<option value="${s.id}" ${entry.sectionId === s.id ? "selected" : ""}>${s.name}</option>`,
+      )
+      .join("");
+
     const { value: formValues } = await Swal.fire({
       title: "Edit Entry",
       html: `
-        <label style="display: block; text-align: left; margin-bottom: 4px; font-size: 14px; color: #94a3b8;">Date</label>
-        <input id="swal-date" type="date" class="swal2-input" value="${dateValue}" style="margin-top: 0;" />
-        <label style="display: block; text-align: left; margin-bottom: 4px; margin-top: 12px; font-size: 14px; color: #94a3b8;">Hours Worked</label>
-        <input id="swal-hours" type="number" step="0.01" min="0" class="swal2-input" placeholder="Hours" value="${(
-          entry.minutes / 60
-        ).toFixed(2)}" style="margin-top: 0;" />
+        <label style="display:block;text-align:left;margin-bottom:4px;font-size:14px;color:#94a3b8;">Date</label>
+        <input id="swal-date" type="date" class="swal2-input" value="${dateValue}" style="margin-top:0;" />
+        <label style="display:block;text-align:left;margin-bottom:4px;margin-top:12px;font-size:14px;color:#94a3b8;">Hours Worked</label>
+        <input id="swal-hours" type="number" step="0.01" min="0" class="swal2-input" placeholder="Hours" value="${(entry.minutes / 60).toFixed(2)}" style="margin-top:0;" />
+        ${
+          entryBatches.length > 0
+            ? `<label style="display:block;text-align:left;margin-bottom:4px;margin-top:12px;font-size:14px;color:#94a3b8;">Batch</label>
+               <select id="swal-batch" class="swal2-input" style="margin-top:0;padding:8px 12px;">
+                 <option value="">— No Batch —</option>
+                 ${batchOptionsHtml}
+               </select>
+               <label style="display:block;text-align:left;margin-bottom:4px;margin-top:12px;font-size:14px;color:#94a3b8;">Section</label>
+               <select id="swal-section" class="swal2-input" style="margin-top:0;padding:8px 12px;">
+                 <option value="">— No Section —</option>
+                 ${sectionOptionsHtml}
+               </select>`
+            : ""
+        }
       `,
       focusConfirm: false,
       showCancelButton: true,
       confirmButtonText: "Save changes",
+      didOpen: () => {
+        const batchSel = document.getElementById("swal-batch");
+        const secSel = document.getElementById("swal-section");
+        if (batchSel && secSel) {
+          batchSel.addEventListener("change", () => {
+            const opt = batchSel.options[batchSel.selectedIndex];
+            const sections = JSON.parse(opt.dataset.sections || "[]");
+            secSel.innerHTML =
+              '<option value="">— No Section —</option>' +
+              sections.map((s) => `<option value="${s.id}">${s.name}</option>`).join("");
+          });
+        }
+      },
       preConfirm: () => {
         const date = document.getElementById("swal-date")?.value;
         const hours = Number.parseFloat(document.getElementById("swal-hours")?.value || "");
@@ -419,13 +562,18 @@ export default function App() {
           Swal.showValidationMessage("Please enter a valid date and hours.");
           return null;
         }
-        return { date, hours };
+        const batchId = document.getElementById("swal-batch")?.value || "";
+        const sectionId = document.getElementById("swal-section")?.value || "";
+        return { date, hours, batchId, sectionId };
       },
     });
 
     if (!formValues) return;
 
     const d = new Date(formValues.date);
+    const selBatch = batches.find((b) => b.id === formValues.batchId);
+    const selSection = selBatch?.sections?.find((s) => s.id === formValues.sectionId);
+
     const updatedEntry = {
       ...entry,
       date: formValues.date,
@@ -433,6 +581,10 @@ export default function App() {
       day: d.getDate(),
       month: MONTHS[d.getMonth()],
       year: d.getFullYear(),
+      batchId: selBatch?.id || "",
+      batchName: selBatch?.name || "",
+      sectionId: selSection?.id || "",
+      sectionName: selSection?.name || "",
     };
     const { id, ...payload } = updatedEntry;
     await updateEntry(entry.id, payload);
@@ -896,10 +1048,14 @@ export default function App() {
             form={form}
             setForm={setForm}
             institutes={institutes}
+            batches={batches}
             showNewInstitute={showNewInstitute}
             newInstitute={newInstitute}
             setNewInstitute={setNewInstitute}
             onSaveInstitute={handleSaveInstitute}
+            onAddBatch={handleAddBatch}
+            onAddSection={handleAddSection}
+            onDeleteBatch={handleDeleteBatch}
             onCalculate={handleCalculate}
             result={result}
             onAddToRecord={handleAddRecord}
@@ -938,11 +1094,21 @@ export default function App() {
         {activeTab === "insights" && isApproved && (
           <InsightsTab entries={entries} />
         )}
+
+        {activeTab === "batch-report" && isApproved && (
+          <BatchReportTab
+            entries={entries}
+            batches={batches}
+            institutes={institutes}
+            onRenameBatch={handleRenameBatch}
+            onDeleteBatch={handleDeleteBatch}
+          />
+        )}
       </div>
 
       {adminMode && (
         <div className="fixed inset-0 z-40 bg-slate-950 overflow-y-auto">
-          <div className="container min-h-full py-6">
+          <div className="container min-h-full" style={{ paddingTop: "max(2rem, env(safe-area-inset-top))", paddingBottom: "2rem" }}>
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <h1 className="mb-0">Admin Panel</h1>
               <div className="flex items-center gap-2 text-sm text-slate-300">
@@ -969,7 +1135,7 @@ export default function App() {
               </div>
             </div>
 
-            <div className="tabs mb-6">
+            <div className="tabs admin-tabs mb-6">
               <button
                 type="button"
                 className={`tab ${activeTab === "adminDashboard" ? "active" : ""}`}

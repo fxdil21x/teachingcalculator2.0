@@ -132,7 +132,7 @@ export default function InsightsTab({ entries }) {
 
   if (!insights) {
     return (
-      <div className="tab-content active">
+      <div className="tab-content active animate-fade-in">
         <h2 className="text-2xl font-bold text-slate-200 mb-6 animate-fade-in">Teaching Insights</h2>
         <EmptyState
           icon="chart"
@@ -144,7 +144,7 @@ export default function InsightsTab({ entries }) {
   }
 
   return (
-    <div className="tab-content active space-y-6">
+    <div className="tab-content active space-y-6 animate-fade-in">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between animate-fade-in">
         <h2 className="text-2xl font-bold text-slate-200">Teaching Insights</h2>
         <div className="text-sm text-slate-400 bg-slate-800/50 px-3 py-1.5 rounded-lg">

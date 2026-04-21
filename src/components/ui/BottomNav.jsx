@@ -1,9 +1,10 @@
-import { Calculator, Calendar, FileText, BarChart3 } from "lucide-react";
+import { Calculator, Calendar, FileText, BarChart3, BookOpen } from "lucide-react";
 
 const NAV_ITEMS = [
   { id: "today", label: "Calculate", icon: Calculator },
-  { id: "monthly", label: "Monthly", icon: Calendar },
-  { id: "salary", label: "Reports", icon: FileText },
+  { id: "monthly", label: "Hours", icon: Calendar },
+  { id: "batch-report", label: "Batches", icon: BookOpen },
+  { id: "salary", label: "Salary", icon: FileText },
   { id: "insights", label: "Insights", icon: BarChart3 },
 ];
 

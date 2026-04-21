@@ -1,14 +1,18 @@
 import { useState } from "react";
-import { CalendarDays, Clock, Coffee, Building2, ChevronDown, ChevronUp, Pencil, Trash2 } from "lucide-react";
+import { CalendarDays, Clock, Coffee, Building2, ChevronDown, ChevronUp, Pencil, Trash2, Layers, Plus, X } from "lucide-react";
 
 export default function CalculateTab({
   form,
   setForm,
   institutes,
+  batches,
   showNewInstitute,
   newInstitute,
   setNewInstitute,
   onSaveInstitute,
+  onAddBatch,
+  onAddSection,
+  onDeleteBatch,
   onCalculate,
   result,
   onAddToRecord,
@@ -16,6 +20,10 @@ export default function CalculateTab({
   onDeleteInstitute,
 }) {
   const [showInstitutes, setShowInstitutes] = useState(false);
+  const [showAddBatch, setShowAddBatch] = useState(false);
+  const [newBatchName, setNewBatchName] = useState("");
+  const [showAddSection, setShowAddSection] = useState(false);
+  const [newSectionName, setNewSectionName] = useState("");
 
   const setToday = () => {
     const today = new Date().toISOString().split("T")[0];
@@ -28,8 +36,27 @@ export default function CalculateTab({
     setForm((p) => ({ ...p, [field]: time }));
   };
 
+  // Batches for the currently selected institute
+  const instituteBatches = batches.filter((b) => b.instituteId === form.instituteId);
+  const selectedBatch = batches.find((b) => b.id === form.batchId);
+  const batchSections = selectedBatch?.sections || [];
+
+  function handleSaveBatch() {
+    if (!newBatchName.trim()) return;
+    onAddBatch(newBatchName.trim());
+    setNewBatchName("");
+    setShowAddBatch(false);
+  }
+
+  function handleSaveSection() {
+    if (!newSectionName.trim()) return;
+    onAddSection(form.batchId, newSectionName.trim());
+    setNewSectionName("");
+    setShowAddSection(false);
+  }
+
   return (
-    <div className="tab-content active space-y-4">
+    <div className="tab-content active space-y-4 animate-fade-in">
       {/* Session Details Card */}
       <div className="form-card animate-slide-up">
         <div className="form-card-header">
@@ -55,7 +82,7 @@ export default function CalculateTab({
             />
           </div>
 
-          <div className="grid-two">
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="mb-0 flex items-center gap-2">
@@ -119,7 +146,7 @@ export default function CalculateTab({
 
         <select
           value={form.instituteId}
-          onChange={(e) => setForm((p) => ({ ...p, instituteId: e.target.value }))}
+          onChange={(e) => setForm((p) => ({ ...p, instituteId: e.target.value, batchId: "", sectionId: "" }))}
           className="mb-0"
         >
           {institutes.map((inst) => (
@@ -159,6 +186,219 @@ export default function CalculateTab({
           </div>
         )}
       </div>
+
+      {/* Batch Card — only shown when a real institute is selected */}
+      {form.instituteId && form.instituteId !== "new" && (
+        <div className="form-card animate-slide-up" style={{ animationDelay: "0.2s" }}>
+          <div className="form-card-header">
+            <div
+              className="form-card-icon"
+              style={{ background: "rgba(245,158,11,0.1)", color: "#f59e0b" }}
+            >
+              <Layers size={20} />
+            </div>
+            <div className="flex-1">
+              <h3 className="form-card-title">Batch</h3>
+            </div>
+          </div>
+
+          {/* No batches empty state */}
+          {instituteBatches.length === 0 && !showAddBatch ? (
+            <div className="py-3 text-center">
+              <p className="text-sm text-slate-500 mb-3">No batches yet for this institute</p>
+              <button
+                type="button"
+                className="btn-secondary w-auto px-4 py-2 mx-auto flex items-center gap-2 press-scale"
+                onClick={() => setShowAddBatch(true)}
+              >
+                <Plus size={15} /> Add First Batch
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {/* None chip */}
+              <button
+                type="button"
+                className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-all duration-150 ${
+                  !form.batchId
+                    ? "bg-slate-700 border-slate-500 text-slate-200"
+                    : "bg-slate-800/50 border-slate-700/50 text-slate-500 hover:border-slate-600 hover:text-slate-400"
+                }`}
+                onClick={() => setForm((p) => ({ ...p, batchId: "", sectionId: "" }))}
+              >
+                None
+              </button>
+
+              {/* Batch chips */}
+              {instituteBatches.map((b) => (
+                <button
+                  key={b.id}
+                  type="button"
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-all duration-150 ${
+                    form.batchId === b.id
+                      ? "bg-amber-500/20 border-amber-500/50 text-amber-300"
+                      : "bg-slate-800/50 border-slate-700/50 text-slate-400 hover:border-slate-500 hover:text-slate-300"
+                  }`}
+                  onClick={() => setForm((p) => ({ ...p, batchId: b.id, sectionId: "" }))}
+                >
+                  {b.name}
+                </button>
+              ))}
+
+              {/* Add batch chip */}
+              {!showAddBatch && (
+                <button
+                  type="button"
+                  className="px-3 py-1.5 rounded-full text-sm font-medium border border-dashed border-slate-500 text-slate-300 hover:border-slate-300 hover:text-slate-100 transition-all duration-150"
+                  onClick={() => setShowAddBatch(true)}
+                >
+                  + Add
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Add batch input */}
+          {showAddBatch && (
+            <div className="flex gap-2 mb-3 animate-scale-in">
+              <input
+                type="text"
+                placeholder="e.g. Batch A, Morning Group"
+                value={newBatchName}
+                onChange={(e) => setNewBatchName(e.target.value)}
+                className="mb-0 flex-1"
+                autoFocus
+                onKeyDown={(e) => e.key === "Enter" && handleSaveBatch()}
+              />
+              <button
+                type="button"
+                className="btn-secondary w-auto px-3"
+                onClick={handleSaveBatch}
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                className="icon-btn text-slate-400"
+                onClick={() => { setShowAddBatch(false); setNewBatchName(""); }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+          )}
+
+          {/* Section / Topic — shown when a batch is selected */}
+          {form.batchId && (
+            <div className="border-t border-slate-700/40 pt-4 mt-1">
+              <div className="flex items-center justify-between mb-3">
+                <label className="mb-0 text-xs uppercase tracking-wide text-slate-400">
+                  Section / Topic
+                </label>
+              </div>
+
+              {/* No sections empty state */}
+              {batchSections.length === 0 && !showAddSection ? (
+                <div className="py-2 text-center">
+                  <p className="text-xs text-slate-500 mb-2">No sections yet for this batch</p>
+                  <button
+                    type="button"
+                    className="btn-secondary w-auto px-3 py-1.5 text-xs mx-auto flex items-center gap-1 press-scale"
+                    onClick={() => setShowAddSection(true)}
+                  >
+                    <Plus size={13} /> Add Section
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {/* None chip */}
+                  <button
+                    type="button"
+                    className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-all duration-150 ${
+                      !form.sectionId
+                        ? "bg-slate-700 border-slate-500 text-slate-200"
+                        : "bg-slate-800/50 border-slate-700/50 text-slate-500 hover:border-slate-600 hover:text-slate-400"
+                    }`}
+                    onClick={() => setForm((p) => ({ ...p, sectionId: "" }))}
+                  >
+                    None
+                  </button>
+
+                  {/* Section chips */}
+                  {batchSections.map((sec) => (
+                    <button
+                      key={sec.id}
+                      type="button"
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-all duration-150 ${
+                        form.sectionId === sec.id
+                          ? "bg-emerald-500/20 border-emerald-500/50 text-emerald-300"
+                          : "bg-slate-800/50 border-slate-700/50 text-slate-400 hover:border-slate-500 hover:text-slate-300"
+                      }`}
+                      onClick={() => setForm((p) => ({ ...p, sectionId: sec.id }))}
+                    >
+                      {sec.name}
+                    </button>
+                  ))}
+
+                  {/* Add section chip */}
+                  {!showAddSection && (
+                    <button
+                      type="button"
+                      className="px-3 py-1.5 rounded-full text-sm font-medium border border-dashed border-slate-500 text-slate-300 hover:border-slate-300 hover:text-slate-100 transition-all duration-150"
+                      onClick={() => setShowAddSection(true)}
+                    >
+                      + Add
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Add section input */}
+              {showAddSection && (
+                <div className="flex gap-2 mt-2 animate-scale-in">
+                  <input
+                    type="text"
+                    placeholder="e.g. Chapter 1, Arrays, Week 3"
+                    value={newSectionName}
+                    onChange={(e) => setNewSectionName(e.target.value)}
+                    className="mb-0 flex-1"
+                    autoFocus
+                    onKeyDown={(e) => e.key === "Enter" && handleSaveSection()}
+                  />
+                  <button
+                    type="button"
+                    className="btn-secondary w-auto px-3"
+                    onClick={handleSaveSection}
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    className="icon-btn text-slate-400"
+                    onClick={() => { setShowAddSection(false); setNewSectionName(""); }}
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              )}
+
+              {/* Delete batch */}
+              <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-700/30">
+                <span className="text-xs text-slate-600">
+                  {selectedBatch?.sections?.length || 0} section
+                  {(selectedBatch?.sections?.length || 0) !== 1 ? "s" : ""}
+                </span>
+                <button
+                  type="button"
+                  className="text-xs text-red-400 hover:text-red-300 bg-transparent px-0 flex items-center gap-1"
+                  onClick={() => onDeleteBatch(form.batchId)}
+                >
+                  <Trash2 size={12} /> Delete batch
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Calculate Button */}
       <button
