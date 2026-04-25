@@ -10,7 +10,6 @@ import ChangePassword from "./components/ChangePassword";
 import InsightsTab from "./components/InsightsTab";
 import MonthlyTab from "./components/MonthlyTab";
 import ReportsTab from "./components/ReportsTab";
-import Tabs from "./components/Tabs";
 import BottomNav from "./components/ui/BottomNav";
 import Header from "./components/ui/Header";
 import FAB from "./components/ui/FAB";
@@ -41,6 +40,7 @@ import {
 import { ADMIN_EMAIL } from "./services/firebase";
 import { buildEntryPayload, calculateMinutes, calculateSalary, getYearForEntry } from "./utils/calculations";
 import { MONTHS } from "./utils/constants";
+import { FloatingDockDemo } from "./components/menu/menu";
 
 function aggregateRows(entries, sortDesc = false) {
   const map = {};
@@ -1005,7 +1005,7 @@ export default function App() {
         </div>
         <div className="footer">
           <p>
-            Created by <span>Fadil Rafeek CMA</span>
+            created by <span>Fadil Rafeek N K</span>
           </p>
         </div>
       </div>
@@ -1040,9 +1040,10 @@ export default function App() {
   return (
     <div className="app-shell">
       <Header onMenuClick={() => setMenuOpen(true)} />
-      <div className="container animate-fade-in">
-        <Tabs activeTab={activeTab} onTabChange={handleTabChange} isAdmin={isAdmin} />
-
+      
+      {/* Floating Dock Menu - Show for non-admin users */}
+  
+      <div className="container animate-fade-in pb-24">
         {activeTab === "today" && isApproved && (
           <CalculateTab
             form={form}
@@ -1304,11 +1305,10 @@ export default function App() {
       {changePasswordModal && (
         <ChangePassword onClose={() => setChangePasswordModal(false)} />
       )}
-
-      <BottomNav activeTab={activeTab} onTabChange={handleTabChange} />
-
-      {activeTab === "today" && (
-        <FAB onClick={() => document.querySelector('input[type="date"]')?.focus()} icon={Calculator} label="Quick Calculate" />
+    {!adminMode && isApproved && (
+        <div className="fixed bottom-0 left-0 right-0 py-6 px-4 bg-gradient-to-t from-slate-950 via-slate-950 to-transparent z-50" style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}>
+          <FloatingDockDemo activeTab={activeTab} onTabChange={setActiveTab} />
+        </div>
       )}
 
       <div className="footer hidden md:block">
