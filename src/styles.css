@@ -279,36 +279,6 @@
     animation: shimmer 1.5s infinite;
   }
 
-  /* Bottom Navigation */
-  .bottom-nav {
-    @apply fixed bottom-0 left-0 right-0 z-40;
-    @apply bg-slate-900/95 backdrop-blur-xl;
-    @apply border-t border-slate-700/50;
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-
-  .bottom-nav-inner {
-    @apply flex items-center justify-around h-16 max-w-lg mx-auto;
-  }
-
-  .bottom-nav-item {
-    @apply flex flex-col items-center justify-center flex-1 h-full py-2;
-    @apply text-slate-500 transition-all duration-200 cursor-pointer;
-    @apply bg-transparent border-0 rounded-none;
-  }
-
-  .bottom-nav-item:hover {
-    @apply text-slate-300 bg-transparent;
-  }
-
-  .bottom-nav-item.active {
-    @apply text-blue-400;
-  }
-
-  .bottom-nav-item svg { @apply w-6 h-6 mb-1 transition-transform duration-200; }
-  .bottom-nav-item.active svg { transform: scale(1.1); }
-  .bottom-nav-item span { @apply text-xs font-medium; }
-
   /* Floating Action Button */
   .fab {
     @apply fixed z-50 w-14 h-14 rounded-full;
@@ -490,7 +460,6 @@
 
   /* Responsive - hide bottom nav on desktop, hide tabs on mobile */
   @media (min-width: 768px) {
-    .bottom-nav { display: none; }
     .fab { display: none; }
   }
 
