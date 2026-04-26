@@ -88,16 +88,6 @@ export default function App() {
   const [todayPayload, setTodayPayload] = useState(null);
   const [signupEmail, setSignupEmail] = useState(null);
 
-  // Load saved institute selection from localStorage
-  useEffect(() => {
-    if (user && isApproved) {
-      const savedInstituteId = localStorage.getItem(`selectedInstitute_${user.uid}`);
-      if (savedInstituteId) {
-        setForm((prev) => ({ ...prev, instituteId: savedInstituteId }));
-      }
-    }
-  }, [user, isApproved]);
-
   // Save institute selection to localStorage when it changes
   useEffect(() => {
     if (user && isApproved && form.instituteId && form.instituteId !== "new") {
@@ -127,10 +117,16 @@ export default function App() {
     const savedInstituteId = localStorage.getItem(`selectedInstitute_${user.uid}`);
     const validInstituteId = savedInstituteId && inst.some(i => i.id === savedInstituteId) ? savedInstituteId : null;
 
-    setForm((prev) => ({
-      ...prev,
-      instituteId: validInstituteId || (inst.length > 0 ? inst[0].id : "new"),
-    }));
+    // Reset form to defaults but keep the saved institute selection
+    setForm({
+      date: "",
+      fromTime: "",
+      toTime: "",
+      breakTime: "0",
+      instituteId: validInstituteId || (inst.length > 0 ? inst[0].id : ""),
+      batchId: "",
+      sectionId: "",
+    });
   }
 
   async function reloadUsers() {
