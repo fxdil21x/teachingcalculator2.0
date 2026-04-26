@@ -80,6 +80,7 @@ export default function App() {
   const [year, setYear] = useState(now.getFullYear());
   const [salaryMonth, setSalaryMonth] = useState(now.getMonth());
   const [salaryYear, setSalaryYear] = useState(now.getFullYear());
+  const [fiscalYear, setFiscalYear] = useState(now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1);
   const [form, setForm] = useState({ date: "", fromTime: "", toTime: "", breakTime: "0", instituteId: "", batchId: "", sectionId: "" });
   const [newInstitute, setNewInstitute] = useState({ name: "", rate: "", tds: false });
   const [batches, setBatches] = useState([]);
@@ -238,8 +239,30 @@ export default function App() {
   const monthlyRows = useMemo(() => aggregateRows(monthlySalaryEntries), [monthlySalaryEntries]);
   const allTimeRows = useMemo(() => aggregateRows(entries, true), [entries]);
 
+  const fiscalEntries = useMemo(() => {
+    const from = new Date(`${fiscalYear}-04-01`);
+    const to = new Date(`${fiscalYear + 1}-03-31T23:59:59.999`);
+    return entries.filter((entry) => {
+      const entryDate = new Date(entry.date);
+      return entryDate >= from && entryDate <= to;
+    });
+  }, [entries, fiscalYear]);
+
+  const fiscalRows = useMemo(() => aggregateRows(fiscalEntries, true), [fiscalEntries]);
+  const fiscalTotal = fiscalRows.reduce((sum, r) => sum + r.salary, 0);
+  const fiscalTdsEstimate = useMemo(
+    () => fiscalEntries.reduce((sum, entry) => {
+      if (!entry.tds) return sum;
+      const gross = (entry.minutes / 60) * (entry.hourlyRate || 0);
+      return sum + gross * 0.1;
+    }, 0),
+    [fiscalEntries],
+  );
+  const fiscalYearLabel = `Apr 1 ${fiscalYear} – Mar 31 ${fiscalYear + 1}`;
+
   const monthlyTotal = monthlyRows.reduce((sum, r) => sum + r.salary, 0);
   const allTimeTotal = allTimeRows.reduce((sum, r) => sum + r.salary, 0);
+
   const selectedAdminUser = adminUsers.find((u) => u.id === adminSelectedUserId) || null;
   const adminMonthlyRows = useMemo(
     () => buildAdminMonthlyRows(adminEntries, adminMonth, adminYear),
@@ -1004,8 +1027,21 @@ export default function App() {
           </div>
         </div>
         <div className="footer">
-          <p>
+          <p className="flex items-center justify-center gap-2 flex-wrap">
             Created by <span>Fadil Rafeek CMA</span>
+            <a
+              href="https://www.instagram.com/fadil.rafeek_?igsh=amN0eHJmMWw2Mng3"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 text-blue-300 hover:text-blue-200"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                <path d="M16 11.37a4 4 0 1 1-7.99.5A4 4 0 0 1 16 11.37z" />
+                <path d="M17.5 6.5h.01" />
+              </svg>
+              @fadil.rafeek_
+            </a>
           </p>
         </div>
       </div>
@@ -1085,8 +1121,12 @@ export default function App() {
             setYear={setSalaryYear}
             monthlyRows={monthlyRows}
             monthlyTotal={monthlyTotal}
-            allTimeRows={allTimeRows}
-            allTimeTotal={allTimeTotal}
+            fiscalYear={fiscalYear}
+            setFiscalYear={setFiscalYear}
+            fiscalRows={fiscalRows}
+            fiscalTotal={fiscalTotal}
+            fiscalTdsEstimate={fiscalTdsEstimate}
+            fiscalYearLabel={fiscalYearLabel}
             onDownloadCsv={downloadCsv}
           />
         )}
@@ -1312,8 +1352,21 @@ export default function App() {
       )}
 
       <div className="footer hidden md:block">
-        <p>
+        <p className="flex items-center justify-center gap-2 flex-wrap">
           Created by <span>Fadil Rafeek CMA</span>
+          <a
+            href="https://www.instagram.com/fadil.rafeek_?igsh=amN0eHJmMWw2Mng3"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1 text-blue-300 hover:text-blue-200"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+              <path d="M16 11.37a4 4 0 1 1-7.99.5A4 4 0 0 1 16 11.37z" />
+              <path d="M17.5 6.5h.01" />
+            </svg>
+            @fadil.rafeek_
+          </a>
         </p>
       </div>
     </div>

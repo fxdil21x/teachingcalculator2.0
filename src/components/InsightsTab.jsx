@@ -126,7 +126,9 @@ export default function InsightsTab({ entries }) {
       busiestDay,
       instituteStats: Object.entries(instituteStats)
         .sort(([,a], [,b]) => b.hours - a.hours)
-        .slice(0, 5)
+        .slice(0, 5),
+      instituteBreakdown: Object.entries(instituteStats)
+        .sort(([,a], [,b]) => b.salary - a.salary),
     };
   }, [entries]);
 

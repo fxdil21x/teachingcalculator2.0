@@ -1,7 +1,8 @@
+import { useState } from "react";
 import { ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { MONTHS, YEAR_OPTIONS } from "../utils/constants";
 
-function ProfessionalBreakdown({ title, rows, total, period, delay = 0 }) {
+function ProfessionalBreakdown({ title, rows, total, period, delay = 0, control }) {
   return (
     <div
       className="bg-slate-800/50 rounded-2xl p-5 sm:p-6 border border-slate-700/50 animate-slide-up"
@@ -13,6 +14,7 @@ function ProfessionalBreakdown({ title, rows, total, period, delay = 0 }) {
           {period}
         </span>
       </div>
+      {control && <div className="mb-4">{control}</div>}
 
       <div className="space-y-3 mb-4">
         {rows.map((row, index) => (
@@ -52,8 +54,12 @@ export default function ReportsTab({
   setYear,
   monthlyRows,
   monthlyTotal,
-  allTimeRows,
-  allTimeTotal,
+  fiscalYear,
+  setFiscalYear,
+  fiscalRows,
+  fiscalTotal,
+  fiscalTdsEstimate,
+  fiscalYearLabel,
   onDownloadCsv,
 }) {
   const goToPrevMonth = () => {
@@ -64,6 +70,8 @@ export default function ReportsTab({
       setMonth(month - 1);
     }
   };
+
+  const [showFiscalBreakdown, setShowFiscalBreakdown] = useState(false);
 
   const goToNextMonth = () => {
     if (month === 11) {
@@ -88,71 +96,97 @@ export default function ReportsTab({
         </button>
       </div>
 
-      {/* Month Selector */}
-      <div className="month-selector animate-fade-in">
-        <button type="button" className="month-selector-btn press-scale" onClick={goToPrevMonth}>
-          <ChevronLeft size={20} />
-        </button>
-        <div className="month-selector-text">
-          {MONTHS[month]} {year}
-        </div>
-        <button type="button" className="month-selector-btn press-scale" onClick={goToNextMonth}>
-          <ChevronRight size={20} />
-        </button>
-      </div>
-
-      {/* Year Dropdown */}
-      <div className="flex justify-center animate-fade-in">
-        <select
-          value={year}
-          onChange={(e) => setYear(Number(e.target.value))}
-          className="w-auto text-center bg-slate-800/50 border-slate-700/50 text-sm py-1 px-3 rounded-lg"
-        >
-          {YEAR_OPTIONS.map((y) => (
-            <option key={y} value={y}>
-              {y}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         <ProfessionalBreakdown
           title="Monthly Performance"
           rows={monthlyRows}
           total={monthlyTotal}
           period={`${MONTHS[month]} ${year}`}
           delay={0.15}
-        />
-        <ProfessionalBreakdown
-          title="All-Time Performance"
-          rows={allTimeRows}
-          total={allTimeTotal}
-          period="Complete History"
-          delay={0.3}
+          control={(
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="text-sm text-slate-400">Choose month and year to update monthly results.</div>
+              <div className="flex flex-wrap gap-2 items-center justify-center">
+                <button type="button" className="btn-outline press-scale w-10 h-10 flex items-center justify-center" onClick={goToPrevMonth}>
+                  <ChevronLeft size={18} />
+                </button>
+                <div className="text-sm text-slate-200 px-3 py-2 rounded-lg border border-slate-700/50 bg-slate-900/60 min-w-[130px] text-center">
+                  {MONTHS[month]} {year}
+                </div>
+                <button type="button" className="btn-outline press-scale w-10 h-10 flex items-center justify-center" onClick={goToNextMonth}>
+                  <ChevronRight size={18} />
+                </button>
+                <select
+                  value={year}
+                  onChange={(e) => setYear(Number(e.target.value))}
+                  className="text-sm bg-slate-800/50 border border-slate-700/50 px-3 py-2 rounded-lg w-full sm:w-auto"
+                >
+                  {YEAR_OPTIONS.map((y) => (
+                    <option key={y} value={y}>
+                      {y}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
         />
       </div>
 
       <div className="p-4 bg-slate-800/30 rounded-2xl border border-slate-700/50 animate-slide-up" style={{ animationDelay: "0.45s" }}>
-        <h4 className="text-sm font-medium text-slate-300 mb-3">Report Summary</h4>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-          <div className="card-stat">
-            <div className="card-stat-value text-blue-400 animate-count-up">{monthlyRows.length}</div>
-            <div className="card-stat-label">Active Institutes</div>
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h4 className="text-sm font-medium text-slate-300 mb-1">Fiscal Year Report</h4>
+            <div className="text-slate-400">Showing salary data for the selected fiscal year.</div>
           </div>
-          <div className="card-stat">
-            <div className="card-stat-value text-green-400 animate-count-up">{monthlyRows.reduce((sum, r) => sum + r.hours, 0).toFixed(1)}h</div>
-            <div className="card-stat-label">Monthly Hours</div>
+          <select
+            value={fiscalYear}
+            onChange={(e) => setFiscalYear(Number(e.target.value))}
+            className="w-full max-w-xs text-center bg-slate-800/50 border-slate-700/50 text-sm py-2 px-3 rounded-lg"
+          >
+            {YEAR_OPTIONS.map((y) => (
+              <option key={y} value={y}>
+                {`FY ${y}-${String(y + 1).slice(-2)}`}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4 text-center">
+          <div className="rounded-2xl border border-slate-700/50 bg-slate-900/70 p-4">
+            <div className="text-sm text-slate-400">Fiscal Year</div>
+            <div className="mt-2 text-slate-200 font-semibold">{fiscalYearLabel}</div>
           </div>
-          <div className="card-stat">
-            <div className="card-stat-value text-purple-400 animate-count-up">₹{monthlyTotal.toFixed(0)}</div>
-            <div className="card-stat-label">Monthly Earnings</div>
-          </div>
-          <div className="card-stat">
-            <div className="card-stat-value text-orange-400 animate-count-up">{allTimeRows.length}</div>
-            <div className="card-stat-label">Total Institutes</div>
+          <button
+            type="button"
+            onClick={() => setShowFiscalBreakdown((prev) => !prev)}
+            className="rounded-2xl border border-slate-700/50 bg-slate-900/70 p-4 text-left hover:border-blue-400 transition"
+          >
+            <div className="text-sm text-slate-400">Total Fiscal Year Earnings</div>
+            <div className="mt-2 text-2xl font-semibold text-green-300">₹{fiscalTotal.toFixed(2)}</div>
+            <div className="mt-2 text-xs text-slate-400">
+              {showFiscalBreakdown ? "Hide institute breakdown" : "Click here for institute breakdown"}
+            </div>
+          </button>
+          <div className="rounded-2xl border border-slate-700/50 bg-slate-900/70 p-4">
+            <div className="text-sm text-slate-400">Estimated TDS withheld</div>
+            <div className="mt-2 text-2xl font-semibold text-emerald-300">₹{fiscalTdsEstimate.toFixed(2)}</div>
           </div>
         </div>
+
+        {showFiscalBreakdown && (
+          <div className="mt-4 space-y-3">
+            {fiscalRows.map((row) => (
+              <div key={row.name} className="rounded-2xl border border-slate-700/50 bg-slate-900/60 p-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <div className="text-slate-200 font-semibold">{row.name}</div>
+                  <div className="text-xs text-slate-400">{row.hours.toFixed(2)}h</div>
+                </div>
+                <div className="text-slate-200 font-semibold">₹{row.salary.toFixed(2)}</div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
