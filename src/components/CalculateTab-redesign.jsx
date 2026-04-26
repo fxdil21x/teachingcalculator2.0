@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Swal from "sweetalert2";
 import { Plus } from "lucide-react";
+import { formatIndianCurrency } from "../utils/calculations";
 
 export default function CalculateTab({
   form,
@@ -293,7 +294,7 @@ export default function CalculateTab({
       <div className="result">
         <p>
           Hours: <span className="value-highlight">{result.hours}</span> | Salary:{" "}
-          <span className="value-highlight">₹{result.salary}</span>
+          <span className="value-highlight">₹{formatIndianCurrency(result.salary)}</span>
         </p>
         <p>
           Date: <span>{result.date}</span>

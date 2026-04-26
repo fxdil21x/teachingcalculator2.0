@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { MONTHS } from "../utils/constants";
-import { calculateSalary } from "../utils/calculations";
+import { calculateSalary, formatIndianCurrency } from "../utils/calculations";
 import EmptyState from "./ui/EmptyState";
 
 function InsightCard({ title, value, subtitle, icon, color = "blue", delay = 0 }) {
@@ -170,7 +170,7 @@ export default function InsightsTab({ entries }) {
         />
         <InsightCard
           title="Avg Salary/Month"
-          value={`₹${insights.avgSalaryPerMonth.toFixed(0)}`}
+          value={`₹${formatIndianCurrency(insights.avgSalaryPerMonth)}`}
           subtitle="Monthly earnings average"
           delay={0.25}
           icon={
@@ -255,7 +255,7 @@ export default function InsightsTab({ entries }) {
           <div className="text-xs text-slate-400 mt-1">Total Hours</div>
         </div>
         <div className="text-center p-4 bg-slate-800/30 rounded-2xl border border-slate-700/50 hover-lift">
-          <div className="text-xl sm:text-2xl font-bold text-slate-200 animate-count-up">₹{insights.totalSalary.toFixed(0)}</div>
+          <div className="text-xl sm:text-2xl font-bold text-slate-200 animate-count-up">₹{formatIndianCurrency(insights.totalSalary)}</div>
           <div className="text-xs text-slate-400 mt-1">Total Earnings</div>
         </div>
         <div className="text-center p-4 bg-slate-800/30 rounded-2xl border border-slate-700/50 hover-lift">

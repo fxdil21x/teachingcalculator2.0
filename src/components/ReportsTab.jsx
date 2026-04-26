@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { MONTHS, YEAR_OPTIONS } from "../utils/constants";
+import { formatIndianCurrency } from "../utils/calculations";
 
-function ProfessionalBreakdown({ title, rows, total, period, delay = 0, control }) {
+function ProfessionalBreakdown({ title, rows, total, totalHours, period, delay = 0, control }) {
   return (
     <div
       className="bg-slate-800/50 rounded-2xl p-5 sm:p-6 border border-slate-700/50 animate-slide-up"
@@ -31,16 +32,22 @@ function ProfessionalBreakdown({ title, rows, total, period, delay = 0, control 
             </div>
             <div className="text-right">
               <div className="text-slate-200 font-semibold">{row.hours.toFixed(2)}h</div>
-              <div className="text-green-400 text-sm">₹{row.salary.toFixed(2)}</div>
+              <div className="text-green-400 text-sm">₹{formatIndianCurrency(row.salary)}</div>
             </div>
           </div>
         ))}
       </div>
 
       <div className="pt-4 border-t border-slate-700/50">
-        <div className="flex items-center justify-between">
-          <span className="text-slate-400 font-medium">Total Earnings</span>
-          <span className="text-xl font-bold text-green-400 animate-count-up">₹{total.toFixed(2)}</span>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <span className="text-slate-400 font-medium">Total Hours</span>
+            <div className="text-xl font-bold text-blue-400 animate-count-up">{totalHours.toFixed(2)}h</div>
+          </div>
+          <div>
+            <span className="text-slate-400 font-medium">Total Earnings</span>
+            <div className="text-xl font-bold text-green-400 animate-count-up">₹{formatIndianCurrency(total)}</div>
+          </div>
         </div>
       </div>
     </div>
@@ -54,6 +61,7 @@ export default function ReportsTab({
   setYear,
   monthlyRows,
   monthlyTotal,
+  monthlyHours,
   fiscalYear,
   setFiscalYear,
   fiscalRows,
@@ -101,6 +109,7 @@ export default function ReportsTab({
           title="Monthly Performance"
           rows={monthlyRows}
           total={monthlyTotal}
+          totalHours={monthlyHours}
           period={`${MONTHS[month]} ${year}`}
           delay={0.15}
           control={(
@@ -163,14 +172,14 @@ export default function ReportsTab({
             className="rounded-2xl border border-slate-700/50 bg-slate-900/70 p-4 text-left hover:border-blue-400 transition"
           >
             <div className="text-sm text-slate-400">Total Fiscal Year Earnings</div>
-            <div className="mt-2 text-2xl font-semibold text-green-300">₹{fiscalTotal.toFixed(2)}</div>
+            <div className="mt-2 text-2xl font-semibold text-green-300">₹{formatIndianCurrency(fiscalTotal)}</div>
             <div className="mt-2 text-xs text-slate-400">
               {showFiscalBreakdown ? "Hide institute breakdown" : "Click here for institute breakdown"}
             </div>
           </button>
           <div className="rounded-2xl border border-slate-700/50 bg-slate-900/70 p-4">
             <div className="text-sm text-slate-400">Estimated TDS withheld</div>
-            <div className="mt-2 text-2xl font-semibold text-emerald-300">₹{fiscalTdsEstimate.toFixed(2)}</div>
+            <div className="mt-2 text-2xl font-semibold text-emerald-300">₹{formatIndianCurrency(fiscalTdsEstimate)}</div>
           </div>
         </div>
 
@@ -182,7 +191,7 @@ export default function ReportsTab({
                   <div className="text-slate-200 font-semibold">{row.name}</div>
                   <div className="text-xs text-slate-400">{row.hours.toFixed(2)}h</div>
                 </div>
-                <div className="text-slate-200 font-semibold">₹{row.salary.toFixed(2)}</div>
+                <div className="text-slate-200 font-semibold">₹{formatIndianCurrency(row.salary)}</div>
               </div>
             ))}
           </div>

@@ -74,8 +74,8 @@ export default function BatchReportTab({
           </div>
         )}
 
-        {Object.entries(grouped).map(([instId, inst]) => (
-          <div key={instId} className="mb-6 last:mb-0">
+        {Object.entries(grouped).map(([instId, inst], instIndex) => (
+          <div key={instId} className="mb-6 last:mb-0 stagger-item" style={{ animationDelay: `${0.1 + instIndex * 0.08}s` }}>
             {/* Institute header */}
             <div className="flex items-center gap-2 mb-3">
               <Building2 size={16} className="text-blue-400 shrink-0" />
@@ -85,14 +85,15 @@ export default function BatchReportTab({
             </div>
 
             <div className="space-y-3 pl-1">
-              {inst.batches.map((batch) => {
+              {inst.batches.map((batch, batchIndex) => {
                 const batchHours = hoursMap[batch.id];
                 const isEditingThisBatch = editingBatch?.id === batch.id;
 
                 return (
                   <div
                     key={batch.id}
-                    className="rounded-xl border border-slate-700/60 bg-slate-800/40 overflow-hidden"
+                    className="rounded-xl border border-slate-700/60 bg-slate-800/40 overflow-hidden stagger-item"
+                    style={{ animationDelay: `${0.1 + batchIndex * 0.08}s` }}
                   >
                     {/* Batch header */}
                     <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-700/40 bg-slate-800/60">

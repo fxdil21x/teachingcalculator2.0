@@ -205,11 +205,15 @@
   }
 
   .footer {
-    @apply mt-8 text-center text-slate-400;
+    @apply mt-4 text-center text-slate-500 text-sm;
   }
 
   .footer span {
-    @apply text-blue-300;
+    @apply text-blue-400 font-medium;
+  }
+
+  .footer a {
+    @apply text-slate-400 hover:text-blue-300 transition-colors;
   }
 
   .loading {

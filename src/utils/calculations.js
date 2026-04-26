@@ -32,3 +32,10 @@ export function getYearForEntry(entry) {
   if (entry.year) return Number.parseInt(entry.year, 10);
   return MONTHS.indexOf(entry.month) <= 2 ? 2026 : 2025;
 }
+
+export function formatIndianCurrency(amount) {
+  return new Intl.NumberFormat('en-IN', {
+    maximumFractionDigits: 2,
+    minimumFractionDigits: 2,
+  }).format(amount);
+}

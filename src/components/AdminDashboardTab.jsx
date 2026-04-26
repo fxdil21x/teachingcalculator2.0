@@ -1,5 +1,5 @@
 import { MONTHS } from "../utils/constants";
-import { calculateSalary } from "../utils/calculations";
+import { calculateSalary, formatIndianCurrency } from "../utils/calculations";
 
 export default function AdminDashboardTab({
   users,
@@ -84,7 +84,7 @@ export default function AdminDashboardTab({
             </div>
             <div className="entry-item">
               <strong>Monthly Salary</strong>
-              <p>₹{monthlySalary.toFixed(2)}</p>
+              <p>₹{formatIndianCurrency(monthlySalary)}</p>
             </div>
           </div>
 
@@ -97,7 +97,7 @@ export default function AdminDashboardTab({
                   <strong>{row.name}</strong>
                   <p>Hours: {row.hours.toFixed(2)}</p>
                 </div>
-                <div>₹{row.salary.toFixed(2)}</div>
+                <div>₹{formatIndianCurrency(row.salary)}</div>
               </div>
             ))}
           </div>

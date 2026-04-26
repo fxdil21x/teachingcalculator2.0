@@ -39,7 +39,7 @@ import {
   updateUserProfile,
 } from "./services/dataService";
 import { ADMIN_EMAIL } from "./services/firebase";
-import { buildEntryPayload, calculateMinutes, calculateSalary, getYearForEntry } from "./utils/calculations";
+import { buildEntryPayload, calculateMinutes, calculateSalary, getYearForEntry, formatIndianCurrency } from "./utils/calculations";
 import { MONTHS } from "./utils/constants";
 
 function aggregateRows(entries, sortDesc = false) {
@@ -88,6 +88,23 @@ export default function App() {
   const [todayPayload, setTodayPayload] = useState(null);
   const [signupEmail, setSignupEmail] = useState(null);
 
+  // Load saved institute selection from localStorage
+  useEffect(() => {
+    if (user && isApproved) {
+      const savedInstituteId = localStorage.getItem(`selectedInstitute_${user.uid}`);
+      if (savedInstituteId) {
+        setForm((prev) => ({ ...prev, instituteId: savedInstituteId }));
+      }
+    }
+  }, [user, isApproved]);
+
+  // Save institute selection to localStorage when it changes
+  useEffect(() => {
+    if (user && isApproved && form.instituteId && form.instituteId !== "new") {
+      localStorage.setItem(`selectedInstitute_${user.uid}`, form.instituteId);
+    }
+  }, [form.instituteId, user, isApproved]);
+
   useEffect(() => {
     if (!("serviceWorker" in navigator)) {
       console.log("Service Workers not supported");
@@ -105,9 +122,14 @@ export default function App() {
     setInstitutes(inst);
     setEntries(ent);
     setBatches(batchList);
+
+    // Get saved institute selection
+    const savedInstituteId = localStorage.getItem(`selectedInstitute_${user.uid}`);
+    const validInstituteId = savedInstituteId && inst.some(i => i.id === savedInstituteId) ? savedInstituteId : null;
+
     setForm((prev) => ({
       ...prev,
-      instituteId: inst.length > 0 ? prev.instituteId || inst[0].id : "new",
+      instituteId: validInstituteId || (inst.length > 0 ? inst[0].id : "new"),
     }));
   }
 
@@ -187,6 +209,12 @@ export default function App() {
       confirmButtonColor: "#dc2626",
     });
     if (!result.isConfirmed) return;
+
+    // Clear saved institute selection on logout
+    if (user) {
+      localStorage.removeItem(`selectedInstitute_${user.uid}`);
+    }
+
     await logout();
     await Swal.fire({
       title: "Logged out",
@@ -261,6 +289,7 @@ export default function App() {
   const fiscalYearLabel = `Apr 1 ${fiscalYear} – Mar 31 ${fiscalYear + 1}`;
 
   const monthlyTotal = monthlyRows.reduce((sum, r) => sum + r.salary, 0);
+  const monthlyReportHours = monthlyRows.reduce((sum, r) => sum + r.hours, 0);
   const allTimeTotal = allTimeRows.reduce((sum, r) => sum + r.salary, 0);
 
   const selectedAdminUser = adminUsers.find((u) => u.id === adminSelectedUserId) || null;
@@ -1027,22 +1056,23 @@ export default function App() {
           </div>
         </div>
         <div className="footer">
-          <p className="flex items-center justify-center gap-2 flex-wrap">
-            Created by <span>Fadil Rafeek CMA</span>
+          <div className="flex items-center justify-center gap-3 flex-wrap text-xs">
+            <span>Created by <span>Fadil Rafeek CMA</span></span>
+            <span className="text-slate-600">•</span>
             <a
               href="https://www.instagram.com/fadil.rafeek_?igsh=amN0eHJmMWw2Mng3"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-1 text-blue-300 hover:text-blue-200"
+              className="inline-flex items-center gap-1.5 hover:text-blue-300 transition-colors"
             >
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
                 <path d="M16 11.37a4 4 0 1 1-7.99.5A4 4 0 0 1 16 11.37z" />
                 <path d="M17.5 6.5h.01" />
               </svg>
               @fadil.rafeek_
             </a>
-          </p>
+          </div>
         </div>
       </div>
     );
@@ -1121,6 +1151,7 @@ export default function App() {
             setYear={setSalaryYear}
             monthlyRows={monthlyRows}
             monthlyTotal={monthlyTotal}
+            monthlyHours={monthlyReportHours}
             fiscalYear={fiscalYear}
             setFiscalYear={setFiscalYear}
             fiscalRows={fiscalRows}
@@ -1351,23 +1382,24 @@ export default function App() {
         <FAB onClick={() => document.querySelector('input[type="date"]')?.focus()} icon={Calculator} label="Quick Calculate" />
       )}
 
-      <div className="footer hidden md:block">
-        <p className="flex items-center justify-center gap-2 flex-wrap">
-          Created by <span>Fadil Rafeek CMA</span>
+      <div className="footer">
+        <div className="flex items-center justify-center gap-3 flex-wrap text-xs">
+          <span>Created by <span>Fadil Rafeek CMA</span></span>
+          <span className="text-slate-600">•</span>
           <a
             href="https://www.instagram.com/fadil.rafeek_?igsh=amN0eHJmMWw2Mng3"
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1 text-blue-300 hover:text-blue-200"
+            className="inline-flex items-center gap-1.5 hover:text-blue-300 transition-colors"
           >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
               <path d="M16 11.37a4 4 0 1 1-7.99.5A4 4 0 0 1 16 11.37z" />
               <path d="M17.5 6.5h.01" />
             </svg>
             @fadil.rafeek_
           </a>
-        </p>
+        </div>
       </div>
     </div>
   );

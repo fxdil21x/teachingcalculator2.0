@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { CalendarDays, Clock, Coffee, Building2, ChevronDown, ChevronUp, Pencil, Trash2, Layers, Plus, X } from "lucide-react";
+import { formatIndianCurrency } from "../utils/calculations";
 
 export default function CalculateTab({
   form,
@@ -420,7 +421,7 @@ export default function CalculateTab({
             </div>
             <div className="text-center">
               <div className="result-label">Salary Earned</div>
-              <div className="result-value text-emerald-400 animate-count-up">₹{result.salary}</div>
+              <div className="result-value text-emerald-400 animate-count-up">₹{formatIndianCurrency(result.salary)}</div>
             </div>
           </div>
           <div className="text-center text-sm text-slate-400 mb-4">
@@ -455,7 +456,7 @@ export default function CalculateTab({
                   <div>
                     <div className="font-medium text-slate-200">{inst.name}</div>
                     <div className="text-sm text-slate-400">
-                      ₹{inst.hourlyRate}/hr {inst.tds && <span className="text-amber-400">• TDS</span>}
+                      ₹{formatIndianCurrency(inst.hourlyRate)}/hr {inst.tds && <span className="text-amber-400">• TDS</span>}
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
