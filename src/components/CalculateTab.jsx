@@ -150,6 +150,7 @@ export default function CalculateTab({
           onChange={(e) => setForm((p) => ({ ...p, instituteId: e.target.value, batchId: "", sectionId: "" }))}
           className="mb-0"
         >
+          <option value="">Select an institute</option>
           {institutes.map((inst) => (
             <option key={inst.id} value={inst.id}>
               {inst.name}
@@ -181,7 +182,7 @@ export default function CalculateTab({
               />
               TDS (10%) Applicable
             </label>
-            <button type="button" className="btn-secondary press-scale" onClick={onSaveInstitute}>
+            <button type="button" className="btn-primary press-scale" onClick={onSaveInstitute}>
               Save Institute
             </button>
           </div>

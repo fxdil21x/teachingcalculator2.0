@@ -30,7 +30,22 @@ export async function logout() {
 }
 
 export async function forgotPassword(email) {
-  await sendPasswordResetEmail(auth, email);
+  try {
+    await sendPasswordResetEmail(auth, email);
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    // Re-throw with more user-friendly message
+    if (error.code === "auth/user-not-found") {
+      throw new Error("If an account with that email exists, we've sent you a reset link.");
+    }
+    if (error.code === "auth/invalid-email") {
+      throw new Error("Please enter a valid email address.");
+    }
+    if (error.code === "auth/too-many-requests") {
+      throw new Error("Too many reset attempts. Please wait before trying again.");
+    }
+    throw new Error("Failed to send reset email. Please try again later.");
+  }
 }
 
 export async function changePassword(oldPassword, newPassword) {

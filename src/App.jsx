@@ -311,6 +311,12 @@ export default function App() {
       ...prev,
       instituteId: prev.instituteId === "new" ? newInstituteItem.id : prev.instituteId,
     }));
+    Swal.fire({
+      title: "Success!",
+      text: `Institute "${newInstituteItem.name}" added successfully`,
+      icon: "success",
+      confirmButtonText: "OK",
+    });
   }
 
   async function handleEditInstitute(id) {
@@ -912,7 +918,7 @@ export default function App() {
       if (code === "auth/invalid-credential") {
         await Swal.fire({
           title: "Login failed",
-          text: `Invalid email or password. If this is admin login, make sure ${ADMIN_EMAIL} exists in Firebase Authentication with the correct password.`,
+          text: "Please check your email and password and try again.",
           icon: "error",
         });
         return;
@@ -922,6 +928,14 @@ export default function App() {
           title: "Too many attempts",
           text: "Too many failed login attempts. Please wait and try again.",
           icon: "warning",
+        });
+        return;
+      }
+      if (e.message === "Not approved yet") {
+        await Swal.fire({
+          title: "Account Pending Approval",
+          text: "Your account is waiting for admin approval. Please try again later.",
+          icon: "info",
         });
         return;
       }
@@ -936,9 +950,19 @@ export default function App() {
   async function handleForgotPassword(email) {
     try {
       await forgotPassword(email);
-      window.alert("Reset link sent!");
+      await Swal.fire({
+        title: "Reset Email Sent",
+        text: "If an account with that email exists, we've sent you a password reset link. Please check your email (including spam folder).",
+        icon: "success",
+        confirmButtonText: "OK",
+      });
     } catch (e) {
-      window.alert(e.message);
+      console.error("Forgot password error:", e);
+      await Swal.fire({
+        title: "Error",
+        text: "Failed to send reset email. Please try again or contact support.",
+        icon: "error",
+      });
     }
   }
 
