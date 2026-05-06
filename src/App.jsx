@@ -1398,9 +1398,7 @@ export default function App() {
 
       <BottomNav activeTab={activeTab} onTabChange={handleTabChange} />
 
-      {activeTab === "today" && (
-        <FAB onClick={() => document.querySelector('input[type="date"]')?.focus()} icon={Calculator} label="Quick Calculate" />
-      )}
+     
 
       <div className="footer">
         <div className="flex items-center justify-center gap-3 flex-wrap text-xs">
