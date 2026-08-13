@@ -553,9 +553,23 @@ export default function App() {
       }
     }
 
-    // Build batch options for the entry's institute
-    const entryBatches = batches.filter((b) => b.instituteId === entry.instituteId);
-    const currentBatch = batches.find((b) => b.id === entry.batchId);
+    // Build batch options for the entry's institute (fall back to instituteName)
+    const instituteOptionsHtml = institutes
+      .map((i) => `<option value="${i.id}" ${(entry.instituteId === i.id || (!entry.instituteId && entry.instituteName === i.name)) ? "selected" : ""}>${i.name}</option>`)
+      .join("");
+
+    // If the stored entry has an institute name that isn't in current institutes, add a legacy option
+    let instituteFallbackOption = "";
+    if (entry.instituteId && !institutes.find((i) => i.id === entry.instituteId)) {
+      instituteFallbackOption = `<option value="${entry.instituteId}" selected>${entry.instituteName || 'Unknown'}</option>`;
+    } else if (!entry.instituteId && entry.instituteName && !institutes.find((i) => i.name === entry.instituteName)) {
+      instituteFallbackOption = `<option value="legacy:${encodeURIComponent(entry.instituteName)}" selected>${entry.instituteName}</option>`;
+    }
+
+    const entryBatches = batches.filter(
+      (b) => b.instituteId === entry.instituteId || b.instituteName === entry.instituteName,
+    );
+    const currentBatch = batches.find((b) => b.id === entry.batchId) || entryBatches.find((b) => b.id === entry.batchId);
     const batchOptionsHtml = entryBatches
       .map(
         (b) =>
@@ -576,19 +590,35 @@ export default function App() {
       html: `
         <label style="display:block;text-align:left;margin-bottom:4px;font-size:14px;color:#94a3b8;">Date</label>
         <input id="swal-date" type="date" class="swal2-input" value="${dateValue}" style="margin-top:0;" />
+        <label style="display:block;text-align:left;margin-bottom:4px;margin-top:12px;font-size:14px;color:#94a3b8;">Institute</label>
+        <select id="swal-institute" class="swal2-input" style="margin-top:0;padding:8px 12px;">
+          <option value="">— No Institute —</option>
+          ${instituteOptionsHtml}
+          ${instituteFallbackOption}
+        </select>
         <label style="display:block;text-align:left;margin-bottom:4px;margin-top:12px;font-size:14px;color:#94a3b8;">Hours Worked</label>
         <input id="swal-hours" type="number" step="0.01" min="0" class="swal2-input" placeholder="Hours" value="${(entry.minutes / 60).toFixed(2)}" style="margin-top:0;" />
+        <div id="swal-time-fields" style="display:none;margin-top:8px;">
+          <label style="display:block;text-align:left;margin-top:8px;font-size:13px;color:#94a3b8;">Start</label>
+          <input id="swal-start" type="time" class="swal2-input" style="margin-top:0;padding:6px 10px;" />
+          <label style="display:block;text-align:left;margin-top:8px;font-size:13px;color:#94a3b8;">End</label>
+          <input id="swal-end" type="time" class="swal2-input" style="margin-top:0;padding:6px 10px;" />
+          <label style="display:block;text-align:left;margin-top:8px;font-size:13px;color:#94a3b8;">Break (mins)</label>
+          <input id="swal-break" type="number" min="0" step="1" class="swal2-input" value="0" style="margin-top:0;padding:6px 10px;" />
+        </div>
         ${
-          entryBatches.length > 0
+          (entryBatches.length > 0 || entry.batchId)
             ? `<label style="display:block;text-align:left;margin-bottom:4px;margin-top:12px;font-size:14px;color:#94a3b8;">Batch</label>
                <select id="swal-batch" class="swal2-input" style="margin-top:0;padding:8px 12px;">
                  <option value="">— No Batch —</option>
                  ${batchOptionsHtml}
+                 ${entry.batchId && !entryBatches.find(b => b.id === entry.batchId) ? `<option value="${entry.batchId}" selected>${entry.batchName || 'Unknown Batch'}</option>` : ''}
                </select>
                <label style="display:block;text-align:left;margin-bottom:4px;margin-top:12px;font-size:14px;color:#94a3b8;">Section</label>
                <select id="swal-section" class="swal2-input" style="margin-top:0;padding:8px 12px;">
                  <option value="">— No Section —</option>
                  ${sectionOptionsHtml}
+                 ${entry.sectionId && !(currentBatch?.sections || []).find(s => s.id === entry.sectionId) && entry.sectionName ? `<option value="${entry.sectionId}" selected>${entry.sectionName}</option>` : ''}
                </select>`
             : ""
         }
@@ -599,6 +629,30 @@ export default function App() {
       didOpen: () => {
         const batchSel = document.getElementById("swal-batch");
         const secSel = document.getElementById("swal-section");
+        const instSel = document.getElementById("swal-institute");
+        const hoursInput = document.getElementById("swal-hours");
+        const timeFields = document.getElementById("swal-time-fields");
+        const startInput = document.getElementById("swal-start");
+        const endInput = document.getElementById("swal-end");
+        const breakInput = document.getElementById("swal-break");
+
+        function populateBatchOptions(forInstId, forInstName, selectBatchId) {
+          const opts = batches
+            .filter((b) => b.instituteId === forInstId || b.instituteName === forInstName)
+            .map((b) => `<option value="${b.id}" data-sections='${JSON.stringify(b.sections||[])}' ${selectBatchId===b.id? 'selected':''}>${b.name}</option>`)
+            .join("");
+          if (batchSel) batchSel.innerHTML = '<option value="">— No Batch —</option>' + opts + (selectBatchId && !opts.includes(`value="${selectBatchId}"`) ? `<option value="${selectBatchId}" selected>${entry.batchName||'Unknown Batch'}</option>` : '');
+          if (secSel) secSel.innerHTML = '<option value="">— No Section —</option>';
+        }
+
+        if (instSel) {
+          instSel.addEventListener('change', () => {
+            const instId = instSel.value;
+            const instName = instSel.options[instSel.selectedIndex]?.text || '';
+            populateBatchOptions(instId, instName, '');
+          });
+        }
+
         if (batchSel && secSel) {
           batchSel.addEventListener("change", () => {
             const opt = batchSel.options[batchSel.selectedIndex];
@@ -608,25 +662,87 @@ export default function App() {
               sections.map((s) => `<option value="${s.id}">${s.name}</option>`).join("");
           });
         }
+
+        if (hoursInput && timeFields) {
+          hoursInput.addEventListener('focus', () => {
+            timeFields.style.display = 'block';
+            try {
+              if (entry.fromTime) startInput.value = entry.fromTime;
+              if (entry.toTime) endInput.value = entry.toTime;
+              if (entry.breakTime) breakInput.value = entry.breakTime;
+              if (!startInput.value && entry.minutes) {
+                startInput.value = '09:00';
+                const dt = new Date(`1970-01-01T09:00`);
+                dt.setMinutes(dt.getMinutes() + (entry.minutes || 0));
+                const hh = String(dt.getHours()).padStart(2, '0');
+                const mm = String(dt.getMinutes()).padStart(2, '0');
+                endInput.value = `${hh}:${mm}`;
+              }
+            } catch (e) {}
+          });
+
+          function recomputeHours() {
+            const s = startInput.value;
+            const e = endInput.value;
+            const br = Number(breakInput.value || 0);
+            if (s && e) {
+              const mins = (new Date(`1970-01-01T${e}`) - new Date(`1970-01-01T${s}`)) / 60000 - br;
+              if (Number.isFinite(mins)) {
+                hoursInput.value = (mins / 60).toFixed(2);
+              }
+            }
+          }
+          startInput.addEventListener('change', recomputeHours);
+          endInput.addEventListener('change', recomputeHours);
+          breakInput.addEventListener('change', recomputeHours);
+        }
       },
       preConfirm: () => {
         const date = document.getElementById("swal-date")?.value;
-        const hours = Number.parseFloat(document.getElementById("swal-hours")?.value || "");
+        const hoursInputVal = document.getElementById("swal-hours")?.value || "";
+        const start = document.getElementById("swal-start")?.value || "";
+        const end = document.getElementById("swal-end")?.value || "";
+        const breakMins = Number(document.getElementById("swal-break")?.value || 0);
+
+        let hours = Number.parseFloat(hoursInputVal || "");
+        if (start && end) {
+          const mins = (new Date(`1970-01-01T${end}`) - new Date(`1970-01-01T${start}`)) / 60000 - (Number.isFinite(breakMins) ? breakMins : 0);
+          hours = mins / 60;
+        }
+
         if (!date || !Number.isFinite(hours) || hours < 0) {
-          Swal.showValidationMessage("Please enter a valid date and hours.");
+          Swal.showValidationMessage("Please enter a valid date and hours (or valid start/end times).");
           return null;
         }
+        const instituteId = document.getElementById("swal-institute")?.value || "";
         const batchId = document.getElementById("swal-batch")?.value || "";
         const sectionId = document.getElementById("swal-section")?.value || "";
-        return { date, hours, batchId, sectionId };
+        return { date, hours, instituteId, batchId, sectionId, start, end, breakMins };
       },
     });
 
     if (!formValues) return;
 
     const d = new Date(formValues.date);
-    const selBatch = batches.find((b) => b.id === formValues.batchId);
-    const selSection = selBatch?.sections?.find((s) => s.id === formValues.sectionId);
+    let selBatch = batches.find((b) => b.id === formValues.batchId);
+    let selSection = selBatch?.sections?.find((s) => s.id === formValues.sectionId);
+
+    // Ensure selected batch/section resolved from current batches or fallback to entry values
+    if (!selBatch && formValues.batchId) {
+      selBatch = batches.find((b) => b.id === formValues.batchId) || (formValues.batchId === entry.batchId ? { id: entry.batchId, name: entry.batchName, sections: [] } : undefined);
+    }
+    if (!selSection && formValues.sectionId) {
+      selSection = selBatch?.sections?.find((s) => s.id === formValues.sectionId) || (formValues.sectionId === entry.sectionId ? { id: entry.sectionId, name: entry.sectionName } : undefined);
+    }
+
+    // Resolve institute selection (handle legacy instituteName values)
+    let selInstitute;
+    if (formValues.instituteId && String(formValues.instituteId).startsWith("legacy:")) {
+      const name = decodeURIComponent(String(formValues.instituteId).replace(/^legacy:/, ""));
+      selInstitute = { id: "", name, hourlyRate: entry.hourlyRate, tds: entry.tds };
+    } else {
+      selInstitute = institutes.find((i) => i.id === formValues.instituteId) || (formValues.instituteId === entry.instituteId ? { id: entry.instituteId, name: entry.instituteName, hourlyRate: entry.hourlyRate, tds: entry.tds } : undefined) || institutes.find((i) => i.name === entry.instituteName);
+    }
 
     const updatedEntry = {
       ...entry,
@@ -635,10 +751,17 @@ export default function App() {
       day: d.getDate(),
       month: MONTHS[d.getMonth()],
       year: d.getFullYear(),
+      instituteId: selInstitute?.id || entry.instituteId || "",
+      instituteName: selInstitute?.name || entry.instituteName || "",
+      hourlyRate: selInstitute?.hourlyRate || entry.hourlyRate || 0,
+      tds: selInstitute?.tds || entry.tds || false,
       batchId: selBatch?.id || "",
       batchName: selBatch?.name || "",
       sectionId: selSection?.id || "",
       sectionName: selSection?.name || "",
+      fromTime: formValues.start || entry.fromTime || "",
+      toTime: formValues.end || entry.toTime || "",
+      breakTime: (formValues.breakMins !== undefined ? formValues.breakMins : entry.breakTime) || "0",
     };
     const { id, ...payload } = updatedEntry;
     await updateEntry(entry.id, payload);

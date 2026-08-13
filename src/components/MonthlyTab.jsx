@@ -99,7 +99,16 @@ export default function MonthlyTab({ month, year, setMonth, setYear, totalHours,
                     </div>
                     <div>
                       <div className="entry-card-hours">{(entry.minutes / 60).toFixed(2)}h</div>
-                      <div className="entry-card-details">{entry.instituteName}</div>
+                      <div className="entry-card-details">
+                        <div>{entry.instituteName}</div>
+                        {(entry.batchName || entry.sectionName) && (
+                          <div className="text-xs text-slate-400">
+                            {entry.batchName && <span>{entry.batchName}</span>}
+                            {entry.batchName && entry.sectionName && <span> • </span>}
+                            {entry.sectionName && <span>{entry.sectionName}</span>}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
